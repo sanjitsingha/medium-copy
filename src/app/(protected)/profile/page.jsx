@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { useAuthContext } from "@/context/AuthContext";
-import { ChevronUpDownIcon } from "@heroicons/react/24/outline";
+import { ChevronUpDownIcon,  } from "@heroicons/react/24/outline";
 import Modal from "@/app/components/ui/Modal";
 const page = () => {
   const [user, setuser] = useState(true);
@@ -25,8 +25,8 @@ const page = () => {
   return (
     <>
       {user && (
-        <div className="w-full">
-          <div className="max-w-[800px] py-10 mx-auto">
+        <div className="w-full ">
+          <div className="w-full max-w-[800px] pt-20 mx-auto ">
             <div className="flex justify-between items-baseline">
               <h1 className="text-[26px] font-medium tracking-tighter">
                 Profile
@@ -49,37 +49,15 @@ const page = () => {
                 <p>Email Address</p>
                 <p>itsmesanjitsingh@gmail.com</p>
               </div>
-              <div className="bio ">
-                <div className="flex items-center text-[14px] justify-between text-black/60">
-                  <p>About me</p>
-                  <button
-                    onClick={() => setBioExpand(!BioExpand)}
-                    className="flex items-center gap-1 cursor-pointer"
-                  >
-                    <p>Click here to edit</p>
-                    <ChevronUpDownIcon className="w-4 h-4" />
-                  </button>
-                </div>
-                <div
-                  style={{ height }}
-                  className="overflow-hidden transition-all duration-300 ease-in-out"
-                >
-                  <div ref={contentRef} className="pt-2 pb-8">
-                    <form action="">
-                      <textarea
-                        placeholder="Hii, My name is Alex"
-                        maxLength={400}
-                        className="bg-gray-200 rounded-sm text-black placeholder:text-black/20 p-2 text-sm min-h-[100px] outline-none w-full block"
-                        name=""
-                        id=""
-                      ></textarea>
-                      <button className="text-[13px] text-right px-10 mt-2 py-2 bg-black text-white rounded-full cursor-pointer">
-                        Update
-                      </button>
-                    </form>
-                  </div>
-                </div>
+               <div className="flex items-center text-[14px] justify-between text-black/60">
+                <p>About</p>
+                <button
+                onClick={()=>{
+                  setBioModalOpen(true)
+                }}
+                className="cursor-pointer">Update</button>
               </div>
+             
 
               <button
                 onClick={() => setDeleteModalOpen(true)}
@@ -93,12 +71,16 @@ const page = () => {
             </div>
           </div>
           <Modal open={usernameModalOpen} onOpenChange={setUsernameModalOpen}>
-            <h2 className="text-xl font-semibold mb-4">Change Username</h2>
+            <h2 className="text-[16px]  mb-4">Change Username</h2>
             <input
               type="text"
               placeholder="@newusername"
-              className="bg-gray-200 p-2 w-full rounded-md"
+              className="bg-gray-200 outline-none p-2 w-full rounded-md"
             />
+            <div className="w-full my-2 bg-red-100 border-red-400">
+              <p>username not avaiable</p>
+
+            </div>
             <button
               onClick={() => setUsernameModalOpen(false)}
               className="mt-5 px-6 py-2 bg-black text-white rounded-full"
@@ -123,6 +105,19 @@ const page = () => {
             <button
               onClick={() => setUsernameModalOpen(false)}
               className="mt-5 px-6 py-2 bg-red-800 text-white rounded-full"
+            >
+              Confirm
+            </button>
+          </Modal>
+                <Modal open={bioModalOpen} onOpenChange={setBioModalOpen}>
+            <h2 className="text-[16px] mb-4">Update Bio</h2>
+            <textarea
+              placeholder="Tell us about yourself"
+              className="outline-none p-2 text-[14px] w-full rounded-md"
+            />
+            <button
+             
+              className="mt-5 px-6 py-2 bg-black cursor-pointer text-white rounded-full"
             >
               Confirm
             </button>

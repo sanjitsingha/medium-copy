@@ -1,0 +1,59 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  HomeIcon,
+  UserIcon,
+  BookOpenIcon,
+  ChartBarIcon,
+} from "@heroicons/react/24/outline";
+
+const menu = [
+  { name: "Home", href: "/", icon: HomeIcon },
+  { name: "Library", href: "/library", icon: BookOpenIcon },
+  { name: "Profile", href: "/profile", icon: UserIcon },
+  { name: "Stats", href: "/stats", icon: ChartBarIcon },
+];
+
+export default function Sidebar() {
+  const pathname = usePathname();
+
+  return (
+    <aside className="hidden md:flex flex-col w-60 h-[calc(100vh-70px)] py-8 border-r border-gray-300">
+      <nav className="flex flex-col gap-2 px-6">
+        {menu.map((item) => {
+          const Icon = item.icon;
+          const active = pathname.startsWith(item.href);
+
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={`flex items-center gap-3 px-4 py-2 rounded-md text-sm
+                ${
+                  active
+                    ? "bg-black text-white"
+                    : "text-black/70 hover:bg-gray-100"
+                }
+              `}
+            >
+              <Icon className="w-5 h-5" />
+              {item.name}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Write Button */}
+      <div className="mt-auto px-6">
+        <Link
+          href="/write"
+          className="block text-center w-full bg-black text-white py-2 rounded-full"
+        >
+          Write
+        </Link>
+      </div>
+    </aside>
+  );
+}

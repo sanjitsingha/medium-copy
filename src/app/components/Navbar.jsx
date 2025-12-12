@@ -23,10 +23,10 @@ const Navbar = () => {
   };
 
   return (
-    <div className="w-full border-b border-gray-200 h-[70px]">
-      <div className="md:px-10 px-4 lg:px-10 xl:px-0 max-w-[1100px] mx-auto h-full flex justify-between items-center">
+    <div className="w-full border-b border-gray-300 h-[70px]">
+      <div className="md:px-10 px-4 lg:px-10 xl:px-10  h-full flex justify-between items-center">
         {/* LOGO */}
-        <p className="text-xl font-semibold">Medium</p>
+        <Link href={"/"} className="text-xl font-semibold">Medium</Link>
 
         {/* SIGN IN POPUP */}
         <SignIn open={open} onClose={() => setOpen(false)} />

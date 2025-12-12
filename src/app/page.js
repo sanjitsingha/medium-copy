@@ -4,6 +4,8 @@ import Navbar from "./components/Navbar";
 import { useAuthContext } from "@/context/AuthContext";
 import Homepage from "./Pages/Homepage"; // authenticated feed
 import LandingPage from "./Pages/LandingPages/LandingPage"; // public landing
+import Sidebar from "./components/Sidebar";
+import MobileNav from "./components/MobileNav";
 
 export default function Home() {
   const { user, loading } = useAuthContext();
@@ -32,7 +34,13 @@ export default function Home() {
   // If user IS logged in -> show authenticated Homepage/feed
   return (
     <>
-      <Homepage />
+      <div className="flex">
+        <Sidebar />
+        <main className="flex-1 p-6 max-w-[900px] mx-auto">
+          <Homepage />
+        </main>
+      </div>
+      <MobileNav />
     </>
   );
 }
