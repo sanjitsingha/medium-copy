@@ -6,7 +6,7 @@ import SignIn from "./PopUpDialog/SignIn";
 import { useAuthContext } from "@/context/AuthContext";
 import { logoutUser } from "@/lib/logout";
 import { useRouter } from "next/navigation";
-import { LockOpenIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
+import { LockOpenIcon, PencilSquareIcon, BellAlertIcon } from "@heroicons/react/24/outline";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -60,6 +60,10 @@ const Navbar = () => {
                 <PencilSquareIcon className="size-6 text-black/60 " />
                 <p className="text-black/70">Write</p>
               </Link>
+
+              <button className="mr-4 cursor-pointer">
+                <BellAlertIcon className="size-6 text-black/60" />
+              </button>
 
               {/* Avatar */}
               <div className="relative">
