@@ -1,7 +1,11 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { useAuthContext } from "@/context/AuthContext";
-import { ChevronUpDownIcon,  } from "@heroicons/react/24/outline";
+import {
+  ChevronUpDownIcon,
+  XCircleIcon,
+  CheckCircleIcon,
+} from "@heroicons/react/24/outline";
 import Modal from "@/app/components/ui/Modal";
 const page = () => {
   const [user, setuser] = useState(true);
@@ -12,6 +16,7 @@ const page = () => {
   const [usernameModalOpen, setUsernameModalOpen] = useState(false);
   const [bioModalOpen, setBioModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [displayNameModel, setDisplayNameModel] = useState(false);
 
   // animate expand/collapse by auto-calculating content height
   useEffect(() => {
@@ -37,7 +42,9 @@ const page = () => {
             <div className="w-full flex flex-col gap-4">
               <div className="flex items-center text-[14px] justify-between text-black/60">
                 <p>Display Name</p>
-                <p>Sanjit Singha</p>
+                <button onClick={() => setDisplayNameModel(true)}>
+                  Sanjit Singha
+                </button>
               </div>
               <div className="flex items-center text-[14px] justify-between text-black/60">
                 <p>User Name</p>
@@ -49,15 +56,17 @@ const page = () => {
                 <p>Email Address</p>
                 <p>itsmesanjitsingh@gmail.com</p>
               </div>
-               <div className="flex items-center text-[14px] justify-between text-black/60">
+              <div className="flex items-center text-[14px] justify-between text-black/60">
                 <p>About</p>
                 <button
-                onClick={()=>{
-                  setBioModalOpen(true)
-                }}
-                className="cursor-pointer">Update</button>
+                  onClick={() => {
+                    setBioModalOpen(true);
+                  }}
+                  className="cursor-pointer"
+                >
+                  Update
+                </button>
               </div>
-             
 
               <button
                 onClick={() => setDeleteModalOpen(true)}
@@ -77,9 +86,13 @@ const page = () => {
               placeholder="@newusername"
               className="bg-gray-200 outline-none p-2 w-full rounded-md"
             />
-            <div className="w-full my-2 bg-red-100 border-red-400">
-              <p>username not avaiable</p>
-
+            <div className="w-full my-2 bg-red-100 flex items-center gap-1 px-2 py-1 border rounded-sm border-red-400">
+              <XCircleIcon className="w-5 h-5 text-red-600 inline-block mr-2" />
+              <p className="text-[12px]">username not avaiable</p>
+            </div>
+            <div className="w-full my-2 bg-green-100 flex items-center gap-1 px-2 py-1 border rounded-sm border-green-400">
+              <CheckCircleIcon className="w-5 h-5 text-green-600 inline-block mr-2" />
+              <p className="text-[12px]">username avaiable</p>
             </div>
             <button
               onClick={() => setUsernameModalOpen(false)}
@@ -95,12 +108,12 @@ const page = () => {
               your content will be permanently gone, including your profile,
               stories, publications, notes, and responses.
               <br />
-              Deleting your Medium account will not delete any Stripe account you have connected to
-              your Medium account. If you’re not sure about that, we suggest you
-              deactivate or submit a request at help.medium.com instead. If you
-              created a Medium Membership through the Apple App Store or Google
-              Play Store, you must also cancel your subscription via iTunes or
-              Google Play Store.
+              Deleting your Medium account will not delete any Stripe account
+              you have connected to your Medium account. If you’re not sure
+              about that, we suggest you deactivate or submit a request at
+              help.medium.com instead. If you created a Medium Membership
+              through the Apple App Store or Google Play Store, you must also
+              cancel your subscription via iTunes or Google Play Store.
             </p>
             <button
               onClick={() => setUsernameModalOpen(false)}
@@ -109,16 +122,20 @@ const page = () => {
               Confirm
             </button>
           </Modal>
-                <Modal open={bioModalOpen} onOpenChange={setBioModalOpen}>
+          <Modal open={bioModalOpen} onOpenChange={setBioModalOpen}>
             <h2 className="text-[16px] mb-4">Update Bio</h2>
             <textarea
               placeholder="Tell us about yourself"
               className="outline-none p-2 text-[14px] w-full rounded-md"
             />
-            <button
-             
-              className="mt-5 px-6 py-2 bg-black cursor-pointer text-white rounded-full"
-            >
+            <button className="mt-5 px-6 py-2 bg-black cursor-pointer text-white rounded-full">
+              Confirm
+            </button>
+          </Modal>
+           <Modal open={displayNameModel} onOpenChange={setDisplayNameModel}>
+            <h2 className="text-[16px] mb-4">Display Name</h2>
+            <input placeholder="New Display Name" className="outline-none px-2 w-full bg-gray-200 text-[12px] py-2" type="text" />
+            <button className="mt-5 px-6 py-2 bg-black cursor-pointer text-white rounded-full">
               Confirm
             </button>
           </Modal>
