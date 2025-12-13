@@ -7,12 +7,14 @@ import {
   UserIcon,
   BookOpenIcon,
   ChartBarIcon,
+  QueueListIcon,
 } from "@heroicons/react/24/outline";
 
 const menu = [
   { name: "Home", href: "/", icon: HomeIcon },
   { name: "Library", href: "/library", icon: BookOpenIcon },
   { name: "Profile", href: "/profile", icon: UserIcon },
+  { name: "Stories", href: "/stories", icon: QueueListIcon },
   { name: "Stats", href: "/stats", icon: ChartBarIcon },
 ];
 

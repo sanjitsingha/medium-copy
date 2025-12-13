@@ -210,7 +210,7 @@ const Page = () => {
     <div className="w-full">
       <div className="w-full max-w-[800px] pt-10 mx-auto ">
         <div className="flex justify-between items-baseline">
-          <h1 className="text-[26px] font-medium tracking-tighter">Profile</h1>
+          <h1 className="text-[32px] tracking-tighter font-medium">Profile</h1>
           <div className="bg-gray-300 w-12 h-12 rounded-full"></div>
         </div>
 
