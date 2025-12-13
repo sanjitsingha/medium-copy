@@ -33,7 +33,7 @@ export default function Sidebar() {
               className={`flex items-center gap-3 px-4 py-2 rounded-md text-sm
                 ${
                   active
-                    ? "bg-black text-white"
+                    ? " bg-gray-100 text-black"
                     : "text-black/70 hover:bg-gray-100"
                 }
               `}
@@ -44,16 +44,6 @@ export default function Sidebar() {
           );
         })}
       </nav>
-
-      {/* Write Button */}
-      <div className="mt-auto px-6">
-        <Link
-          href="/write"
-          className="block text-center w-full bg-black text-white py-2 rounded-full"
-        >
-          Write
-        </Link>
-      </div>
     </aside>
   );
 }

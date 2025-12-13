@@ -11,9 +11,7 @@ export default function ProtectedLayout({ children }) {
         <Sidebar />
 
         {/* Main page content */}
-        <div className="flex-1">
-          {children}
-        </div>
+        <div className="flex-1">{children}</div>
       </div>
 
       {/* Mobile bottom nav */}
