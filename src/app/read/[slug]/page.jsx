@@ -8,6 +8,7 @@ import Link from "next/link";
 import { GoBookmark } from "react-icons/go";
 import { GoBookmarkFill } from "react-icons/go";
 import { IoBulbOutline } from "react-icons/io5";
+import { IoIosShareAlt } from "react-icons/io";
 
 export default function ReadArticlePage() {
   const { slug } = useParams();
@@ -63,11 +64,14 @@ export default function ReadArticlePage() {
       <h1 className="text-[42px] font-serif leading-tight">{article.title}</h1>
       <div className="w-full flex border-l-6 pl-4 border-green-600 my-8 justify-between">
         <div className="text-gray-500 text-sm flex gap-4 items-center">
-          <Link href={"/"}>{article.authorName || "Admin"}</Link>
+          <p>{article.authorName || "Admin"}</p>
           <p>{new Date(article.$createdAt).toDateString()}</p>
+          <p>{article.readTime + "min Read"}</p>
         </div>
         <div>
-          <GoBookmark size={22} />
+          <button className="cursor-pointer">
+            <GoBookmark size={22} />
+          </button>
         </div>
       </div>
       {imageUrl && (
@@ -81,16 +85,13 @@ export default function ReadArticlePage() {
       <div className="prose prose-lg max-w-none">
         {HTMLReactParser(article.content)}
       </div>
-      <div className="grid grid-cols-3 h-10 my-10 items-center gap-2">
-        <div className="">
-          <hr className="opacity-20" />
-        </div>
-        <div className="max-w-[300px] rounded-full h-full">
-          <IoBulbOutline size={22} />
-        </div>
-        <div className="">
-          <hr className="opacity-20" />
-        </div>
+      <div className=" mt-10 w-full  justify-end flex gap-3 h-full">
+        <button className="bg-gray-300 h-8 w-8 rounded-full flex items-center justify-center cursor-pointer">
+          <IoBulbOutline size={18} />
+        </button>
+        <button className="bg-gray-300 h-8 w-8 rounded-full flex items-center justify-center cursor-pointer">
+          <IoIosShareAlt size={18} />
+        </button>
       </div>
       <div className="w-full border-l-6 pl-4 border-green-600  my-20">
         <p className="text-gray-500 text-sm">The Author:</p>
