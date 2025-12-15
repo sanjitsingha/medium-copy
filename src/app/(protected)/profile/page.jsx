@@ -20,6 +20,7 @@ const Page = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [displayNameModal, setDisplayNameModal] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [preferencesOpen, setPreferencesOpen] = useState(false);
 
   // form states
   const [newUsername, setNewUsername] = useState("");
@@ -248,7 +249,13 @@ const Page = () => {
             <p>Change Password</p>
             <p className="cursor-pointer underline">Update</p>
           </div>
-
+          <div
+            onClick={() => setPreferencesOpen(true)}
+            className="flex cursor-pointer items-center text-[14px] justify-between text-black/60"
+          >
+            <p>Preferences</p>
+            <p className="cursor-pointer underline">Update</p>
+          </div>
           <div className="flex items-center text-[14px] justify-between text-black/60">
             <p>About</p>
             <button onClick={() => setBioModalOpen(true)} className="underline">
@@ -349,6 +356,45 @@ const Page = () => {
       {/* ---------- Bio Modal ---------- */}
       <Modal open={bioModalOpen} onOpenChange={setBioModalOpen}>
         <h2 className="text-[16px] mb-4">Update Bio</h2>
+
+        <textarea
+          placeholder="Write your bio..."
+          className="outline-none p-2 text-[14px] w-full rounded-md bg-gray-100"
+          value={bioText}
+          onChange={(e) => setBioText(e.target.value)}
+          rows={6}
+        />
+
+        {bioMsg && (
+          <p
+            className={`mt-2 text-sm ${
+              bioMsg.type === "error" ? "text-red-500" : "text-green-600"
+            }`}
+          >
+            {bioMsg.text}
+          </p>
+        )}
+
+        <div className="flex gap-2 mt-4 justify-end">
+          <button
+            onClick={() => setBioModalOpen(false)}
+            className="px-4 py-1 rounded"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleUpdateBio}
+            disabled={bioLoading}
+            className="px-4 py-1 bg-black text-white rounded"
+          >
+            {bioLoading ? "Saving..." : "Confirm"}
+          </button>
+        </div>
+      </Modal>
+
+       {/* ---------- Preferences Modal ---------- */}
+      <Modal open={preferencesOpen} onOpenChange={setPreferencesOpen}>
+        <h2 className="text-[16px] mb-4">Update Preferences</h2>
 
         <textarea
           placeholder="Write your bio..."
