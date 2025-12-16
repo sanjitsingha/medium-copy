@@ -6,6 +6,7 @@ import SignIn from "./PopUpDialog/SignIn";
 import { useAuthContext } from "@/context/AuthContext";
 import { logoutUser } from "@/lib/logout";
 import { useRouter } from "next/navigation";
+import { MdArrowOutward } from "react-icons/md";
 import { LockOpenIcon, PencilSquareIcon, BellAlertIcon } from "@heroicons/react/24/outline";
 
 const Navbar = () => {
@@ -26,7 +27,17 @@ const Navbar = () => {
     <div className="w-full border-b border-gray-300 h-[70px]">
       <div className="md:px-10 px-4 lg:px-10 xl:px-10  h-full flex justify-between items-center">
         {/* LOGO */}
-        <Link href={"/"} className="text-xl font-semibold">Medium</Link>
+      <div className="flex items-center gap-4">
+      <Link href={"/"} className="text-xl font-semibold">Medium</Link>
+      <div className="relative bg-red-200">
+      <input className="outline-none text-sm w-[300px] bg-gray-100 py-2 px-3" type="text" placeholder="Search Topic" />
+      <Link className="flex gap-4 hidden items-center  py-4 px-4 w-[250px] bg-white top-12 left-0 absolute shadow-sm" href={'/explore'}>
+      <p>Explore</p>
+      <MdArrowOutward size={22}/>
+            </Link>
+      </div>
+      </div>
+
 
         {/* SIGN IN POPUP */}
         <SignIn open={open} onClose={() => setOpen(false)} />
