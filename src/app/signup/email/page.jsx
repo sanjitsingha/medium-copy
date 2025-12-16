@@ -21,7 +21,7 @@ const professions = [
   "Doctor",
   "Artist",
   "Other",
-];
+];  
 
 export default function EmailSignup() {
   const router = useRouter();
