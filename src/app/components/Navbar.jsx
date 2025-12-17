@@ -8,6 +8,7 @@ import { logoutUser } from "@/lib/logout";
 import { useRouter } from "next/navigation";
 import { MdArrowOutward } from "react-icons/md";
 import { LockOpenIcon, PencilSquareIcon, BellAlertIcon } from "@heroicons/react/24/outline";
+import { CiSearch } from "react-icons/ci";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -48,8 +49,11 @@ const Navbar = () => {
         {/* LOGO */}
         <div className="flex items-center gap-4">
           <Link href={"/"} className="text-xl font-semibold">Medium</Link>
-          <div ref={searchRef} className="relative">
-            <input
+
+          {!loading && user && (
+              <div ref={searchRef} className="relative">
+            <span className="flex items-center ">
+              <input
               type="text"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
@@ -63,6 +67,9 @@ const Navbar = () => {
               className="outline-none text-sm w-[300px] bg-gray-100 py-2 px-3 rounded-full"
               placeholder="Search topics"
             />
+            <CiSearch className="ml-[-40px]" size={22}/>
+            </span>
+            
 
             {showSearchBox && (
               <div className="absolute top-12 left-0 w-[260px] bg-white shadow-md border border-gray-200 rounded-md">
@@ -78,6 +85,9 @@ const Navbar = () => {
             )}
           </div>
 
+
+          )}
+        
         </div>
 
 

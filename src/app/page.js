@@ -36,7 +36,7 @@ export default function Home() {
     <>
       <div className="flex">
         <Sidebar />
-        <main className="flex-1 p-6 max-w-[900px] mx-auto">
+        <main className="flex-1 w-full mx-auto">
           <Homepage />
         </main>
       </div>
