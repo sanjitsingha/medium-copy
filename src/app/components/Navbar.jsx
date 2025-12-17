@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import SignIn from "./PopUpDialog/SignIn";
 import { useAuthContext } from "@/context/AuthContext";
 import { logoutUser } from "@/lib/logout";
@@ -12,9 +12,28 @@ import { LockOpenIcon, PencilSquareIcon, BellAlertIcon } from "@heroicons/react/
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const [showSearchBox, setShowSearchBox] = useState(false);
+  const searchRef = useRef(null);
 
   const { user, loading, setUser } = useAuthContext();
   const router = useRouter();
+
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setShowSearchBox(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+
+
+
 
   const handleLogout = async () => {
     await logoutUser();
@@ -27,16 +46,39 @@ const Navbar = () => {
     <div className="w-full border-b border-gray-300 h-[70px]">
       <div className="md:px-10 px-4 lg:px-10 xl:px-10  h-full flex justify-between items-center">
         {/* LOGO */}
-      <div className="flex items-center gap-4">
-      <Link href={"/"} className="text-xl font-semibold">Medium</Link>
-      <div className="relative bg-red-200">
-      <input className="outline-none text-sm w-[300px] bg-gray-100 py-2 px-3" type="text" placeholder="Search Topic" />
-      <Link className="flex gap-4 hidden items-center  py-4 px-4 w-[250px] bg-white top-12 left-0 absolute shadow-sm" href={'/explore'}>
-      <p>Explore</p>
-      <MdArrowOutward size={22}/>
-            </Link>
-      </div>
-      </div>
+        <div className="flex items-center gap-4">
+          <Link href={"/"} className="text-xl font-semibold">Medium</Link>
+          <div ref={searchRef} className="relative">
+            <input
+              type="text"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              onFocus={() => setShowSearchBox(true)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && searchValue.trim()) {
+                  router.push(`/search?q=${searchValue}`);
+                  setShowSearchBox(false);
+                }
+              }}
+              className="outline-none text-sm w-[300px] bg-gray-100 py-2 px-3 rounded-full"
+              placeholder="Search topics"
+            />
+
+            {showSearchBox && (
+              <div className="absolute top-12 left-0 w-[260px] bg-white shadow-md border border-gray-200 rounded-md">
+                <Link
+                  href="/explore"
+                  onClick={() => setShowSearchBox(false)}
+                  className="flex items-center justify-between px-4 py-3 hover:bg-gray-100"
+                >
+                  <p>Explore</p>
+                  <MdArrowOutward size={18} />
+                </Link>
+              </div>
+            )}
+          </div>
+
+        </div>
 
 
         {/* SIGN IN POPUP */}
