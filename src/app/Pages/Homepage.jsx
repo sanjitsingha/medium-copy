@@ -9,6 +9,7 @@ import Link from "next/link";
 import ShimmerArticle from "../components/ShimmerArticle";
 import YourReadingLIst from "../components/YourReadingLIst";
 import { IoIosShareAlt } from "react-icons/io";
+import TrendingStories from "../components/TrendingStories";
 
 const Homepage = () => {
   const [articles, setArticles] = useState([]);
@@ -41,10 +42,10 @@ const Homepage = () => {
 
   return (
     <div className="w-full">
-      <div className="w-full mx-auto px-4 flex gap-10">
+      <div className="w-full pl-[6%] mx-auto px-4 flex gap-10">
         
         {/* ================= LEFT FEED ================= */}
-        <div className="flex-1 max-w-[800px] pt-4">
+        <div className="flex-1 min-w-[800px] pt-4">
           
           {/* Tabs */}
           <div className="mt-6 border-b border-gray-200 mb-10 flex gap-10">
@@ -147,8 +148,9 @@ const Homepage = () => {
         </div>
 
         {/* ================= RIGHT SIDEBAR ================= */}
-        <div className="hidden border-l border-gray-300 lg:block w-[300px]  pt-6">
+        <div className="hidden border-l pl-4 border-gray-300 lg:block max-w-[360px]  pt-6">
           <div className="sticky  top-[90px] flex flex-col gap-6">
+            <TrendingStories/>
             <YourReadingLIst />
 
             {/* Future widgets */}
