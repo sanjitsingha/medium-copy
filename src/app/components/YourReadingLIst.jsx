@@ -14,17 +14,17 @@ const YourReadingLIst = () => {
           {" "} on any story to easily add it to your reading list
       </p>
       <div className="w-full">
-        <div className="pt-4 border-b border-gray-200 pb-4">
+        <div className="pt-4 border-b border-gray-300 pb-4">
           <div className="flex items-center gap-2">
             {/* top sec */}
-            <div className="w-8 h-8 rounded-full bg-gray-300">
+            <div className="w-6 h-6 rounded-full bg-gray-300">
               {/* profile image */}
             </div>
             <p className="text-sm text-gray-500">Author Name</p>
           </div>
           <Link href={"/"}  className=" cursor-pointer">
-            <p className="font-medium leading-[24px] mt-2 text-[16px] tracking-tight">this is the title of a stories which is bookmarked and this will remove once un-bookmarker.</p>
-            <p className="text-gray-500 text-sm mt-2">16 Nov</p>
+            <p className="font-medium leading-[18px] mt-2 text-[14px] tracking-tight">What the Smartest People I Know Are Quietly Learning.</p>
+            <p className="text-gray-500 text-[12px] mt-2">16 Nov</p>
           </Link>
         </div>
       </div>

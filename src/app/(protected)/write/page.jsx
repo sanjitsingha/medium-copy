@@ -16,6 +16,8 @@ export default function WritePage() {
   const [featuredImageUrl, setFeaturedImageUrl] = useState("");
   const fileInputRef = useRef(null);
 
+console.log(user)
+
   const handleFeaturedImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file || !user) return;
@@ -80,6 +82,7 @@ export default function WritePage() {
           content,
           authorId: user.$id,
           authorName: user.name || "Anonymous",
+          authorAvatar: user.prefs.avatar || null,
           slug: title
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, "-")

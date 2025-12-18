@@ -10,8 +10,10 @@ import ShimmerArticle from "../components/ShimmerArticle";
 import YourReadingLIst from "../components/YourReadingLIst";
 import { IoIosShareAlt } from "react-icons/io";
 import TrendingStories from "../components/TrendingStories";
+import { ID } from "appwrite";
 
 const Homepage = () => {
+  const BUCKET_ID = "article-images"; // or whatever your real bucket ID is
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("explore");
@@ -40,13 +42,18 @@ const Homepage = () => {
     fetchArticles();
   }, []);
 
+  console.log(articles);
+
+  const getAvatarUrl = (fileId) => {
+    if (!fileId) return "/default-avatar.png";
+    return storage.getFileView(BUCKET_ID, fileId);
+  };
+
   return (
     <div className="w-full">
       <div className="w-full pl-[6%] mx-auto px-4 flex gap-10">
-        
         {/* ================= LEFT FEED ================= */}
         <div className="flex-1 min-w-[800px] pt-4">
-          
           {/* Tabs */}
           <div className="mt-6 border-b border-gray-200 mb-10 flex gap-10">
             <button
@@ -83,7 +90,7 @@ const Homepage = () => {
             articles.map((article) => {
               const imageUrl = article.featuredImage
                 ? storage
-                    .getFileView("article-images", article.featuredImage)
+                    .getFileView(BUCKET_ID, article.featuredImage)
                     .toString()
                 : null;
 
@@ -94,6 +101,13 @@ const Homepage = () => {
                 >
                   {/* Author */}
                   <div className="w-full flex items-center gap-4">
+                    <div>
+                      <img
+                        src={getAvatarUrl(article.authorAvatar)}
+                        className="w-6 h-6 rounded-full object-cover"
+                        alt={article.authorName}
+                      />
+                    </div>
                     <p className="text-[12px]">{article.authorName}</p>
                     <p className="text-[12px] text-gray-500">
                       {new Date(article.$updatedAt).toDateString()}
@@ -118,7 +132,7 @@ const Homepage = () => {
 
                       {imageUrl && (
                         <div className="rounded-sm overflow-hidden min-w-[180px]">
-                          <Image
+                          <img
                             src={imageUrl}
                             alt={article.title}
                             width={180}
@@ -150,7 +164,7 @@ const Homepage = () => {
         {/* ================= RIGHT SIDEBAR ================= */}
         <div className="hidden border-l pl-4 border-gray-300 lg:block max-w-[360px]  pt-6">
           <div className="sticky  top-[90px] flex flex-col gap-6">
-            <TrendingStories/>
+            <TrendingStories />
             <YourReadingLIst />
 
             {/* Future widgets */}

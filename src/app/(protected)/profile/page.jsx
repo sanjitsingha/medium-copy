@@ -4,10 +4,14 @@ import React, { useEffect, useRef, useState } from "react";
 import { useAuthContext } from "@/context/AuthContext";
 import { XCircleIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
 import Modal from "@/app/components/ui/Modal";
-import { account } from "@/lib/appwrite";
+import { account, storage } from "@/lib/appwrite";
+import { ID } from "@/lib/appwrite";
+import { logoutUser } from "@/lib/logout";
 
 const Page = () => {
   const { user, loading, setUser } = useAuthContext();
+  const fileInputRef = useRef(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
 
   // collapsible bio (kept if you still need it)
   const [BioExpand, setBioExpand] = useState(false);
@@ -39,6 +43,14 @@ const Page = () => {
   const [newPassword, setNewPassword] = useState("");
   const [passLoading, setPassLoading] = useState(false);
   const [passMsg, setPassMsg] = useState(null);
+
+  console.log(user); // Get details of Auth User
+
+  const handleLogout = async () => {
+    await logoutUser();
+    setUser(null);
+    router.refresh();
+  };
 
   // fill inputs when modal opens from existing user
   useEffect(() => {
@@ -204,6 +216,56 @@ const Page = () => {
     }
   };
 
+  //Handle Avatar Change
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // optional validation
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Max image size is 2MB");
+      return;
+    }
+
+    try {
+      setAvatarUploading(true);
+
+      // delete old avatar if exists
+      if (user?.prefs?.avatar) {
+        await storage.deleteFile("article-images", user.prefs.avatar);
+      }
+
+      // upload new avatar
+      const uploaded = await storage.createFile(
+        "article-images",
+        ID.unique(),
+        file
+      );
+
+      // save fileId in prefs
+      await account.updatePrefs({
+        ...(user.prefs || {}),
+        avatar: uploaded.$id,
+      });
+
+      await refreshUser();
+    } catch (err) {
+      console.error("Avatar upload failed", err);
+      alert("Failed to upload avatar");
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
+
+  //Avatar Url Helper
+
+  const getAvatarUrl = () => {
+    if (!user?.prefs?.avatar) return "/default-avatar.png";
+
+    return storage.getFileView("article-images", user.prefs.avatar);
+  };
+
   // ------------------ UI ------------------
   if (!user) return null; // or show loading/redirect as you prefer
 
@@ -212,7 +274,30 @@ const Page = () => {
       <div className="w-full max-w-[800px] pt-10 mx-auto ">
         <div className="flex justify-between items-baseline">
           <h1 className="text-[32px] tracking-tighter font-medium">Profile</h1>
-          <div className="bg-gray-300 w-12 h-12 rounded-full"></div>
+          <div className="relative">
+            <img
+              src={getAvatarUrl()}
+              alt="Profile"
+              onClick={() => fileInputRef.current.click()}
+              className={`w-12 h-12 rounded-full object-cover cursor-pointer ${
+                avatarUploading ? "opacity-50" : ""
+              }`}
+            />
+
+            {avatarUploading && (
+              <span className="absolute inset-0 flex items-center justify-center text-[10px] bg-black/40 text-white rounded-full">
+                Uploading
+              </span>
+            )}
+
+            <input
+              type="file"
+              accept="image/*"
+              hidden
+              ref={fileInputRef}
+              onChange={handleAvatarChange}
+            />
+          </div>
         </div>
 
         <hr className="mb-4 mt-2 opacity-20" />
@@ -262,6 +347,18 @@ const Page = () => {
               Update
             </button>
           </div>
+
+          <button
+            onClick={() => {
+              handleLogout();
+            }}
+            className="w-full cursor-pointer text-left "
+          >
+            <p className="text-red-500 text-[14px]">Logout</p>
+            <p className="text-[12px] text-black/60">
+              Permanently delete your account and all of your content.
+            </p>
+          </button>
 
           <button
             onClick={() => setDeleteModalOpen(true)}
@@ -392,7 +489,7 @@ const Page = () => {
         </div>
       </Modal>
 
-       {/* ---------- Preferences Modal ---------- */}
+      {/* ---------- Preferences Modal ---------- */}
       <Modal open={preferencesOpen} onOpenChange={setPreferencesOpen}>
         <h2 className="text-[16px] mb-4">Update Preferences</h2>
 

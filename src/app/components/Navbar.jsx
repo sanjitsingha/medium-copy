@@ -7,8 +7,13 @@ import { useAuthContext } from "@/context/AuthContext";
 import { logoutUser } from "@/lib/logout";
 import { useRouter } from "next/navigation";
 import { MdArrowOutward } from "react-icons/md";
-import { LockOpenIcon, PencilSquareIcon, BellAlertIcon } from "@heroicons/react/24/outline";
+import {
+  LockOpenIcon,
+  PencilSquareIcon,
+  BellAlertIcon,
+} from "@heroicons/react/24/outline";
 import { CiSearch } from "react-icons/ci";
+import { storage } from "@/lib/appwrite";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -20,6 +25,11 @@ const Navbar = () => {
   const { user, loading, setUser } = useAuthContext();
   const router = useRouter();
 
+  const getAvatarUrl = () => {
+    if (!user?.prefs?.avatar) return "/default-avatar.png";
+
+    return storage.getFileView("article-images", user.prefs.avatar);
+  };
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -31,10 +41,6 @@ const Navbar = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-
-
-
 
   const handleLogout = async () => {
     await logoutUser();
@@ -48,48 +54,45 @@ const Navbar = () => {
       <div className="md:px-10 px-4 lg:px-10 xl:px-10  h-full flex justify-between items-center">
         {/* LOGO */}
         <div className="flex items-center gap-4">
-          <Link href={"/"} className="text-xl font-semibold">Medium</Link>
+          <Link href={"/"} className="text-xl font-semibold">
+            Medium
+          </Link>
 
           {!loading && user && (
-              <div ref={searchRef} className="relative">
-            <span className="flex items-center ">
-              <input
-              type="text"
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              onFocus={() => setShowSearchBox(true)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && searchValue.trim()) {
-                  router.push(`/search?q=${searchValue}`);
-                  setShowSearchBox(false);
-                }
-              }}
-              className="outline-none text-sm w-[300px] bg-gray-100 py-2 px-3 rounded-full"
-              placeholder="Search topics"
-            />
-            <CiSearch className="ml-[-40px]" size={22}/>
-            </span>
-            
+            <div ref={searchRef} className="relative">
+              <span className="flex items-center ">
+                <input
+                  type="text"
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  onFocus={() => setShowSearchBox(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && searchValue.trim()) {
+                      router.push(`/search?q=${searchValue}`);
+                      setShowSearchBox(false);
+                    }
+                  }}
+                  className="outline-none text-sm w-[300px] bg-gray-100 py-2 px-3 rounded-full"
+                  placeholder="Search topics"
+                />
+                <CiSearch className="ml-[-40px]" size={22} />
+              </span>
 
-            {showSearchBox && (
-              <div className="absolute top-12 left-0 w-[260px] bg-white shadow-md border border-gray-200 rounded-md">
-                <Link
-                  href="/explore"
-                  onClick={() => setShowSearchBox(false)}
-                  className="flex items-center justify-between px-4 py-3 hover:bg-gray-100"
-                >
-                  <p>Explore</p>
-                  <MdArrowOutward size={18} />
-                </Link>
-              </div>
-            )}
-          </div>
-
-
+              {showSearchBox && (
+                <div className="absolute top-12 left-0 w-[260px] bg-white shadow-md border border-gray-200 rounded-md">
+                  <Link
+                    href="/explore"
+                    onClick={() => setShowSearchBox(false)}
+                    className="flex items-center justify-between px-4 py-3 hover:bg-gray-100"
+                  >
+                    <p>Explore</p>
+                    <MdArrowOutward size={18} />
+                  </Link>
+                </div>
+              )}
+            </div>
           )}
-        
         </div>
-
 
         {/* SIGN IN POPUP */}
         <SignIn open={open} onClose={() => setOpen(false)} />
@@ -130,45 +133,18 @@ const Navbar = () => {
 
               {/* Avatar */}
               <div className="relative">
-                <button
-                  onClick={() => setDropdownOpen((prev) => !prev)}
-                  className="w-10 h-10 cursor-pointer rounded-full bg-gray-300 flex justify-center items-center text-black font-medium"
-                >
-                  {user.name
-                    ? user.name.charAt(0).toUpperCase()
-                    : user.email.charAt(0).toUpperCase()}
-                </button>
+                <Link  href={"/profile"} className="w-8 h-8 cursor-pointer ">
+               
+                 
+                
+                  <img
+                    src={getAvatarUrl()}
+                    alt="Profile"
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+               </Link>
 
-                {/* Dropdown Menu */}
-                {dropdownOpen && (
-                  <div className="absolute right-0 px-2 py-6 mt-3 w-60 bg-white shadow-md border border-gray-200 rounded-lg animate-fade-in">
-                    <Link
-                      href="/profile"
-                      onClick={() => setDropdownOpen(false)}
-                      className="block "
-                    >
-                      <div className="flex gap-2 items-center">
-                        <div>
-                          <div className="w-10 h-10 rounded-full bg-gray-300"></div>
-                        </div>
-                        <div>
-                          <p className="text-[14px]">{user.name}</p>
-                          <p className="text-[12px] text-green-500">
-                            View Profile
-                          </p>
-                        </div>
-                      </div>
-                    </Link>
-
-                    <button
-                      onClick={handleLogout}
-                      className="w-full mt-4 flex items-center gap-2 cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100 text-red-600"
-                    >
-                      <LockOpenIcon className="w-5 h-5 inline-block mr-2" />
-                      <p>Logout</p>
-                    </button>
-                  </div>
-                )}
+              
               </div>
             </>
           )}
