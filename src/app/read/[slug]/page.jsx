@@ -10,8 +10,12 @@ import { GoBookmarkFill } from "react-icons/go";
 import { IoBulbOutline } from "react-icons/io5";
 import { IoIosShareAlt } from "react-icons/io";
 import { useAuthContext } from "@/context/AuthContext";
+import RelatedArticles from "@/app/components/RelatedArticles";
+import StoriesCard from "@/app/components/StoriesCard";
 
 export default function ReadArticlePage() {
+
+  const BUCKET_ID = "article-images"; // or whatever your real bucket ID is
   const { user } = useAuthContext();
 
   const { slug } = useParams();
@@ -23,6 +27,12 @@ export default function ReadArticlePage() {
   const [likeDocId, setLikeDocId] = useState(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [bookmarkDocId, setBookmarkDocId] = useState(null);
+
+  const getAvatarUrl = (fileId) => {
+    if (!fileId) return "/default-avatar.png";
+    return storage.getFileView(BUCKET_ID, fileId);
+  };
+
 
   useEffect(() => {
     if (!user || !article?.$id) return;
@@ -219,14 +229,15 @@ export default function ReadArticlePage() {
 
   const imageUrl = article.featuredImage
     ? storage
-        .getFileView(
-          "article-images", // BUCKET ID
-          article.featuredImage
-        )
-        .toString()
+      .getFileView(
+        "article-images", // BUCKET ID
+        article.featuredImage
+      )
+      .toString()
     : null;
 
   return (
+    
     <div className="max-w-[800px] mx-auto pt-2">
       <div className="bg-gray-200 w-full h-[120px] mt-10 rounded-sm flex items-center justify-center">
         {/* THis div will be used to adverstement later on */}
@@ -237,6 +248,13 @@ export default function ReadArticlePage() {
       </h1>
       <div className="w-full flex border-l-6 pl-4 border-green-600 my-8 justify-between">
         <div className="text-gray-500 text-sm flex gap-4 items-center">
+          <div>
+            <img
+              src={getAvatarUrl(article.authorAvatar)}
+              className="w-6 h-6 rounded-full object-cover"
+              alt={article.authorName}
+            />
+          </div>
           <p>{article.authorName || "Admin"}</p>
           <p>{new Date(article.$createdAt).toDateString()}</p>
           <p>{article.readTime + "min Read"}</p>
@@ -266,9 +284,8 @@ export default function ReadArticlePage() {
         <div className="flex items-center gap-2">
           <button
             onClick={toggleLike}
-            className={`h-8 w-8 rounded-full flex items-center justify-center cursor-pointer ${
-              isLiked ? "bg-green-600 text-white" : "bg-gray-300"
-            }`}
+            className={`h-8 w-8 rounded-full flex items-center justify-center cursor-pointer ${isLiked ? "bg-green-600 text-white" : "bg-gray-300"
+              }`}
           >
             <IoBulbOutline size={18} />
           </button>
@@ -283,17 +300,13 @@ export default function ReadArticlePage() {
         {/* THis div will be used to adverstement later on */}
         <p className="text-gray-500">Advertisment Area</p>
       </div>
-      <div className="w-full border-l-6 pl-4 border-green-600  my-20">
-        <p className="text-gray-500 text-sm">The Author:</p>
-        <p className="text-[26px] font-serif mt-2">
-          {article.authorName || "Admin"}
-        </p>
-        <p className="text-sm w-[70%] text-gray-500">
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Architecto,
-          modi numquam. Veniam beatae excepturi ut pariatur eveniet, similique
-          culpa delectus!
-        </p>
+
+      <div>
+        <StoriesCard/>
       </div>
+      
     </div>
+   
+    
   );
 }

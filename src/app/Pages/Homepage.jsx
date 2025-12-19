@@ -10,7 +10,6 @@ import ShimmerArticle from "../components/ShimmerArticle";
 import YourReadingLIst from "../components/YourReadingLIst";
 import { IoIosShareAlt } from "react-icons/io";
 import TrendingStories from "../components/TrendingStories";
-import { ID } from "appwrite";
 
 const Homepage = () => {
   const BUCKET_ID = "article-images"; // or whatever your real bucket ID is
