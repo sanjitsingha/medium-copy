@@ -15,8 +15,36 @@ export default function WritePage() {
   const [featuredImage, setFeaturedImage] = useState(null);
   const [featuredImageUrl, setFeaturedImageUrl] = useState("");
   const fileInputRef = useRef(null);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [categoryError, setCategoryError] = useState("");
 
-console.log(user)
+  // console.log(user)
+  const CATEGORIES = [
+    "Technology",
+    "AI",
+    "Startups",
+    "Business",
+    "Programming",
+    "Design",
+    "Productivity",
+    "Finance",
+    "Marketing",
+    "Health",
+    "Career",
+    "Sports",
+    "Science",
+    "Writing",
+  ];
+
+  const toggleCategory = (category) => {
+    setSelectedCategories((prev) => {
+      if (prev.includes(category)) {
+        return prev.filter((c) => c !== category);
+      }
+      if (prev.length >= 5) return prev; // optional max
+      return [...prev, category];
+    });
+  };
 
   const handleFeaturedImageUpload = async (e) => {
     const file = e.target.files[0];
@@ -58,6 +86,7 @@ console.log(user)
           content,
           authorId: user.$id,
           featuredImage: featuredImage || "",
+          categories: selectedCategories,
           lastEditedAt: new Date().toISOString(),
         }
       );
@@ -70,6 +99,10 @@ console.log(user)
   };
 
   const publishArticle = async () => {
+    if (selectedCategories.length < 3) {
+      setCategoryError("Please select at least 3 categories");
+      return;
+    }
     // Implement publish logic here
     try {
       await databases.createDocument(
@@ -87,6 +120,7 @@ console.log(user)
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, "-")
             .replace(/(^-|-$)+/g, ""),
+          categories: selectedCategories,
           status: "published",
           views: 0,
           likes: 0,
@@ -166,6 +200,39 @@ console.log(user)
         value={content}
         onChange={(newContent) => setContent(newContent)}
       />
+      {/* Categories */}
+      <div className="my-6">
+        <p className="text-sm text-gray-600 mb-2">
+          Choose up to 5 categories (min 3)
+        </p>
+
+        <div className="flex flex-wrap gap-2">
+          {CATEGORIES.map((cat) => {
+            const active = selectedCategories.includes(cat);
+            return (
+              <button
+                key={cat}
+                onClick={() => toggleCategory(cat)}
+                className={`px-4 py-1.5 rounded-full text-sm border transition ${
+                  active
+                    ? "bg-black text-white border-black"
+                    : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
+                }`}
+              >
+                {cat}
+              </button>
+            );
+          })}
+        </div>
+
+        <p className="text-xs text-gray-500 mt-1">
+          {selectedCategories.length} / 5 selected
+        </p>
+
+        {categoryError && (
+          <p className="text-xs text-red-500 mt-1">{categoryError}</p>
+        )}
+      </div>
     </div>
   );
 }
