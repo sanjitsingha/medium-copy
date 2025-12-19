@@ -51,8 +51,11 @@ const Homepage = () => {
   return (
     <div className="w-full">
       <div className="w-full pl-[6%] mx-auto px-4 flex gap-10">
+      
         {/* ================= LEFT FEED ================= */}
         <div className="flex-1 min-w-[800px] pt-4">
+          {/* Notice Board */}
+            <div className="w-full"></div>
           {/* Tabs */}
           <div className="mt-6 border-b border-gray-200 mb-10 flex gap-10">
             <button

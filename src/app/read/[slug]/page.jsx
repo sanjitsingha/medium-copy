@@ -296,13 +296,17 @@ export default function ReadArticlePage() {
           <IoIosShareAlt size={18} />
         </button>
       </div>
-      <div className="bg-gray-200 w-full h-[200px] mt-10 rounded-sm flex items-center justify-center">
+      <div className="bg-gray-200 w-full h-[120px] mt-10 rounded-sm flex items-center justify-center">
         {/* THis div will be used to adverstement later on */}
-        <p className="text-gray-500">Advertisment Area</p>
+        <p className="text-gray-500 text-sm">Advertisment Area</p>
       </div>
 
-      <div>
-        <StoriesCard/>
+      <div className="w-full py-10">
+        <p className="text-[22px] font-semibold tracking-tighter">Related Stories</p>
+        <div className="mt-4 grid grid-cols-2">
+          <StoriesCard/>
+          <StoriesCard/>
+        </div>
       </div>
       
     </div>

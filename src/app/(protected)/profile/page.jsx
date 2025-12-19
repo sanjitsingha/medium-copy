@@ -7,11 +7,82 @@ import Modal from "@/app/components/ui/Modal";
 import { account, storage } from "@/lib/appwrite";
 import { ID } from "@/lib/appwrite";
 import { logoutUser } from "@/lib/logout";
+import { useRouter } from "next/navigation";
 
 const Page = () => {
+  const router = useRouter();
   const { user, loading, setUser } = useAuthContext();
   const fileInputRef = useRef(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
+
+  const INTERESTS = [
+    "Technology",
+    "AI",
+    "Startups",
+    "Business",
+    "Programming",
+    "Design",
+    "Productivity",
+    "Finance",
+    "Marketing",
+    "Health",
+    "Career",
+    "Sports",
+    "Science",
+    "Writing",
+  ];
+
+  // State for preferences
+
+  const [selectedInterests, setSelectedInterests] = useState(
+    user?.prefs?.interests || []
+  );
+  const [prefLoading, setPrefLoading] = useState(false);
+  const [prefMsg, setPrefMsg] = useState(null);
+
+  // Toggle chip selection logic
+  const toggleInterest = (interest) => {
+    setSelectedInterests((prev) => {
+      if (prev.includes(interest)) {
+        return prev.filter((i) => i !== interest);
+      }
+      if (prev.length >= 5) return prev; // max 5 interests
+      return [...prev, interest];
+    });
+  };
+  // Save preferences to Appwrite 
+  const handleUpdatePreferences = async () => {
+    if (selectedInterests.length < 3) {
+      setPrefMsg({
+        type: "error",
+        text: "Please select at least 3 interests",
+      });
+      return;
+    }
+
+    try {
+      setPrefLoading(true);
+      setPrefMsg(null);
+
+      await account.updatePrefs({
+        ...user.prefs,
+        interests: selectedInterests,
+      });
+
+      setPrefMsg({
+        type: "success",
+        text: "Preferences updated successfully",
+      });
+    } catch (err) {
+      setPrefMsg({
+        type: "error",
+        text: err.message || "Failed to update preferences",
+      });
+    } finally {
+      setPrefLoading(false);
+      setPreferencesOpen(false);
+    }
+  };
 
   // collapsible bio (kept if you still need it)
   const [BioExpand, setBioExpand] = useState(false);
@@ -491,39 +562,62 @@ const Page = () => {
 
       {/* ---------- Preferences Modal ---------- */}
       <Modal open={preferencesOpen} onOpenChange={setPreferencesOpen}>
-        <h2 className="text-[16px] mb-4">Update Preferences</h2>
+        <h2 className="text-[16px] mb-2 font-medium">Update Preferences</h2>
 
-        <textarea
-          placeholder="Write your bio..."
-          className="outline-none p-2 text-[14px] w-full rounded-md bg-gray-100"
-          value={bioText}
-          onChange={(e) => setBioText(e.target.value)}
-          rows={6}
-        />
+        <p className="text-sm text-gray-500 mb-4">
+          Choose at least 3 topics you’re interested in
+        </p>
 
-        {bioMsg && (
+        {/* Chips */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {INTERESTS.map((interest) => {
+            const isSelected = selectedInterests.includes(interest);
+            return (
+              <button
+                key={interest}
+                onClick={() => toggleInterest(interest)}
+                className={`px-4 py-1.5 rounded-full text-sm border transition ${
+                  isSelected
+                    ? "bg-black text-white border-black"
+                    : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
+                }`}
+              >
+                {interest}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Counter */}
+        <p className="text-xs text-gray-500 mb-2">
+          {selectedInterests.length} / 5 selected
+        </p>
+
+        {/* Message */}
+        {prefMsg && (
           <p
             className={`mt-2 text-sm ${
-              bioMsg.type === "error" ? "text-red-500" : "text-green-600"
+              prefMsg.type === "error" ? "text-red-500" : "text-green-600"
             }`}
           >
-            {bioMsg.text}
+            {prefMsg.text}
           </p>
         )}
 
-        <div className="flex gap-2 mt-4 justify-end">
+        {/* Actions */}
+        <div className="flex gap-2 mt-5 justify-end">
           <button
-            onClick={() => setBioModalOpen(false)}
-            className="px-4 py-1 rounded"
+            onClick={() => setPreferencesOpen(false)}
+            className="px-4 py-1 rounded text-sm"
           >
             Cancel
           </button>
           <button
-            onClick={handleUpdateBio}
-            disabled={bioLoading}
-            className="px-4 py-1 bg-black text-white rounded"
+            onClick={handleUpdatePreferences}
+            disabled={prefLoading}
+            className="px-4 py-1 bg-black text-white rounded text-sm disabled:opacity-60"
           >
-            {bioLoading ? "Saving..." : "Confirm"}
+            {prefLoading ? "Saving..." : "Confirm"}
           </button>
         </div>
       </Modal>
