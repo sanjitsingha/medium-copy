@@ -115,7 +115,7 @@ const Page = () => {
   const [passLoading, setPassLoading] = useState(false);
   const [passMsg, setPassMsg] = useState(null);
 
-  console.log(user); // Get details of Auth User
+  // console.log(user); // Get details of Auth User
 
   const handleLogout = async () => {
     await logoutUser();

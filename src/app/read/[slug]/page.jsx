@@ -225,7 +225,7 @@ export default function ReadArticlePage() {
     return <p className="text-center mt-20">Article not found</p>;
   }
 
-  console.log(article);
+  // console.log(article);
 
   const imageUrl = article.featuredImage
     ? storage
