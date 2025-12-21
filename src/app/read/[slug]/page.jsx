@@ -277,7 +277,7 @@ export default function ReadArticlePage() {
         />
       )}
 
-      <div className="prose prose-lg max-w-none">
+      <div className="prose text-[20px] prose-lg max-w-none">
         {HTMLReactParser(article.content)}
       </div>
       <div className=" mt-10 w-full  justify-end flex gap-8 h-full">

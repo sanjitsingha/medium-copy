@@ -20,9 +20,93 @@
   }
 }
 
+
+.prose {
+  --tw-prose-body: #111827;
+  --tw-prose-headings: #030712;
+  --tw-prose-links: #2563eb;
+  --tw-prose-bold: #030712;
+  --tw-prose-quotes: #374151;
+}
+/* Headings */
+.prose h1 {
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-top: 2.5rem;
+}
+
+/* Table header */
+.prose thead {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.prose th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #030712;
+  background-color: #f9fafb;
+}
+
+/* Table body */
+.prose td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: top;
+}
+.prose hr{
+  opacity: 20%;
+}
+.prose h2 {
+  font-size: 1.85rem;
+  font-weight: 600;
+  margin-top: 2.25rem;
+}
+
+.prose h3 {
+ 
+  font-weight: 600;
+}
+
+/* Paragraphs */
+.prose p {
+  line-height: 1.75;
+}
+
+/* Links */
+.prose a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.prose a:hover {
+  text-decoration: underline;
+}
+
+/* Blockquotes */
+.prose blockquote {
+  border-left-color: #e5e7eb;
+  font-style: normal;
+  color: #374151;
+}
+
+/* Images */
+.prose img {
+  border-radius: 0.5rem;
+}
+
+/* Lists */
+.prose ul {
+  padding-left: 1.25rem;
+}
+
+
+
 body {
   color: var(--background);
-  font-family: Inter, Helvetica, sans-serif;
+  font-family: Helvetica, sans-serif;
 }
 
 .shimmer {

@@ -6,6 +6,7 @@ import { databases } from "@/lib/appwrite";
 import { TbDots } from "react-icons/tb";
 import { TrashIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
 import Modal from "@/app/components/ui/Modal";
+import Link from "next/link";
 
 const page = () => {
   const [activeTab, setActiveTab] = useState("drafts");
@@ -146,9 +147,9 @@ const page = () => {
                       </p>
                     </div>
                     <div className="flex gap-6">
-                      <button className="cursor-pointer">
+                      <Link href={`/write/${draft.$id}`} className="cursor-pointer">
                         <PencilSquareIcon className="w-5 h-5 text-gray-700" />
-                      </button>
+                      </Link>
                       <button
                         onClick={() => {
                           setSelectedDraftId(draft.$id);
@@ -194,9 +195,9 @@ const page = () => {
                       </p>
                     </div>
                     <div className="flex gap-6">
-                      <button className="cursor-pointer">
+                      <Link href={`/write/${article.$id}?type=published`} className="cursor-pointer">
                         <PencilSquareIcon className="w-5 h-5 text-gray-700" />
-                      </button>
+                      </Link>
                       <button
                         onClick={() => {
                           setSelectedDraftId(article.$id);
