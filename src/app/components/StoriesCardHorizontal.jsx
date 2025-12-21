@@ -22,7 +22,7 @@ export default function StoriesCardHorizontal({
   const avatarUrl = getImageUrl(article.authorAvatar);
 
   return (
-    <div className="border-b border-gray-300 pb-8 mb-8">
+    <div className="border-b border-gray-200 pb-8 mb-8">
       {/* Author */}
       <div className="flex items-center gap-3 text-xs text-gray-500">
         <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-200">

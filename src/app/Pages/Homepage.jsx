@@ -80,75 +80,8 @@ export default function Homepage() {
     fetchData();
   }, [user?.$id]);
 
-  /* ================= LIKE TOGGLE ================= */
-  // const toggleLike = async (articleId) => {
-  //   if (!user) return alert("Login to like");
-
-  //   if (userLikes.has(articleId)) {
-  //     const res = await databases.listDocuments(
-  //       DB_ID,
-  //       LIKES_COLLECTION,
-  //       [
-  //         Query.equal("articleId", [articleId]),
-  //         Query.equal("userId", [user.$id]),
-  //       ]
-  //     );
-
-  //     await databases.deleteDocument(
-  //       DB_ID,
-  //       LIKES_COLLECTION,
-  //       res.documents[0].$id
-  //     );
-
-  //     setUserLikes(prev => {
-  //       const s = new Set(prev);
-  //       s.delete(articleId);
-  //       return s;
-  //     });
-  //   } else {
-  //     await databases.createDocument(DB_ID, LIKES_COLLECTION, ID.unique(), {
-  //       articleId,
-  //       userId: user.$id,
-  //     });
-
-  //     setUserLikes(prev => new Set(prev).add(articleId));
-  //   }
-  // };
-
-  /* ================= BOOKMARK TOGGLE ================= */
-  // const toggleBookmark = async (articleId) => {
-  //   if (!user) return alert("Login to bookmark");
-
-  //   if (userBookmarks.has(articleId)) {
-  //     const res = await databases.listDocuments(
-  //       DB_ID,
-  //       BOOKMARKS_COLLECTION,
-  //       [
-  //         Query.equal("articleId", [articleId]),
-  //         Query.equal("userId", [user.$id]),
-  //       ]
-  //     );
-
-  //     await databases.deleteDocument(
-  //       DB_ID,
-  //       BOOKMARKS_COLLECTION,
-  //       res.documents[0].$id
-  //     );
-
-  //     setUserBookmarks(prev => {
-  //       const s = new Set(prev);
-  //       s.delete(articleId);
-  //       return s;
-  //     });
-  //   } else {
-  //     await databases.createDocument(DB_ID, BOOKMARKS_COLLECTION, ID.unique(), {
-  //       articleId,
-  //       userId: user.$id,
-  //     });
-
-  //     setUserBookmarks(prev => new Set(prev).add(articleId));
-  //   }
-  // };
+  
+  
 
   /* ================= HELPERS ================= */
   const getImageUrl = (fileId) =>
@@ -196,7 +129,7 @@ export default function Homepage() {
         </div>
 
         {/* ================= RIGHT SIDEBAR ================= */}
-        <div className="hidden lg:block w-[320px] pt-6 border-l pl-6">
+        <div className="hidden lg:block w-[320px] pt-6 border-l border-gray-200 pl-6">
           <div className="sticky top-[90px]">
             <YourReadingLIst refreshKey={version} />
           </div>

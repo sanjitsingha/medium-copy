@@ -1,13 +1,24 @@
 "use client";
 import { useRef, useState } from "react";
 import JoditEditor from "jodit-react";
-import { PlusCircleIcon } from "@heroicons/react/24/outline";
+import LoadingBar from "react-top-loading-bar";
+import {
+  ArrowTurnRightUpIcon,
+  ChevronDownIcon,
+  PlusCircleIcon,
+} from "@heroicons/react/24/outline";
 import { databases, ID, storage } from "@/lib/appwrite";
 import { useAuthContext } from "@/context/AuthContext";
+import Link from "next/link";
+import { GoChevronRight } from "react-icons/go";
+import { MdArrowOutward } from "react-icons/md";
+import { useRouter } from "next/navigation";
 
 export default function WritePage() {
-  const { user } = useAuthContext();
+  const loadingBarRef = useRef(null);
 
+  const { user } = useAuthContext();
+  const router = useRouter();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const editor = useRef(null);
@@ -17,8 +28,8 @@ export default function WritePage() {
   const fileInputRef = useRef(null);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [categoryError, setCategoryError] = useState("");
+  const [isPublishing, setIsPublishing] = useState(false);
 
-  // console.log(user)
   const CATEGORIES = [
     "Technology",
     "AI",
@@ -92,6 +103,7 @@ export default function WritePage() {
       );
 
       alert("Draft saved successfully");
+      router.push("/stories");
     } catch (error) {
       console.error("Save draft error:", error);
       alert(error.message || "Failed to save draft");
@@ -105,6 +117,9 @@ export default function WritePage() {
     }
     // Implement publish logic here
     try {
+      setIsPublishing(true);
+      loadingBarRef.current?.continuousStart();
+
       await databases.createDocument(
         "693d3d220017a846a1c0", // DATABASE ID
         "articles", // TABLE ID
@@ -126,113 +141,149 @@ export default function WritePage() {
           likes: 0,
         }
       );
+      loadingBarRef.current?.complete();
+      setIsPublishing(false);
       alert("Article published successfully");
     } catch (error) {
       console.error("Publish article error:", error);
       alert(error.message || "Failed to publish article");
+      loadingBarRef.current?.continuousStart();
+      loadingBarRef.current?.complete();
     }
   };
 
   return (
-    <div className="w-full max-w-[800px] mx-auto pt-10">
-      <div className="w-full flex justify-between items-center mb-4">
-        <button onClick={saveDraft} className="text-[14px] cursor-pointer  ">
-          Save Draft
-        </button>
-        <button
-          onClick={publishArticle}
-          className="bg-green-600 py-2 cursor-pointer rounded-full text-white px-6"
-        >
-          Published
-        </button>
-      </div>
-      <div className="w-full rounded-sm mb-6 bg-gray-100 flex justify-center items-center h-80 border border-gray-300 relative overflow-hidden">
-        {!featuredImageUrl ? (
-          <>
-            <button onClick={() => fileInputRef.current.click()}>
-              <PlusCircleIcon className="w-12 h-12 text-gray-500 cursor-pointer" />
-            </button>
+    <>
+      <LoadingBar color="#16a34a" ref={loadingBarRef} />
 
-            <input
-              type="file"
-              accept="image/*"
-              ref={fileInputRef}
-              className="hidden"
-              onChange={handleFeaturedImageUpload}
-            />
-          </>
-        ) : (
-          <>
-            <img
-              src={featuredImageUrl}
-              alt="Featured"
-              className="w-full h-full object-cover"
-            />
-
-            {/* Edit / Replace */}
-            <button
-              onClick={() => fileInputRef.current.click()}
-              className="absolute bottom-3 right-3 bg-black/70 text-white text-xs px-3 py-1 rounded-full"
+      <div className="w-full max-w-[800px] mx-auto pt-10">
+        <div className="w-full mb-4 flex justify-between">
+          <div className="  flex items-center w-full">
+            <Link
+              className="text-sm pb-1  w-fit flex items-center gap-1"
+              href="/"
             >
-              Edit
+              <p className="bg-yellow-500 p-1 mr-1 rounded-full text-xs"></p>
+              <p className="">View drafts</p>
+              <GoChevronRight size={18} />
+            </Link>
+          </div>
+          <div className="w-full flex justify-end gap-6 items-center ">
+            <button
+              onClick={saveDraft}
+              className="text-[14px] text-gray-500 underline  cursor-pointer  "
+            >
+              Save Draft
             </button>
-
-            <input
-              type="file"
-              accept="image/*"
-              ref={fileInputRef}
-              className="hidden"
-              onChange={handleFeaturedImageUpload}
-            />
-          </>
-        )}
-      </div>
-
-      <input
-        type="text"
-        placeholder="Title"
-        className="w-full text-[32px] font-serif outline-none my-6"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-      />
-      <JoditEditor
-        ref={editor}
-        value={content}
-        onChange={(newContent) => setContent(newContent)}
-      />
-      {/* Categories */}
-      <div className="my-6">
-        <p className="text-sm text-gray-600 mb-2">
-          Choose up to 5 categories (min 3)
-        </p>
-
-        <div className="flex flex-wrap gap-2">
-          {CATEGORIES.map((cat) => {
-            const active = selectedCategories.includes(cat);
-            return (
-              <button
-                key={cat}
-                onClick={() => toggleCategory(cat)}
-                className={`px-4 py-1.5 rounded-full text-sm border transition ${
-                  active
-                    ? "bg-black text-white border-black"
-                    : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
-                }`}
-              >
-                {cat}
-              </button>
-            );
-          })}
+            <button
+              onClick={publishArticle}
+              disabled={isPublishing}
+              className={`bg-green-600 py-1.5 flex items-center gap-1 rounded-full text-white px-4
+    ${isPublishing ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}
+  `}
+            >
+              <p>{isPublishing ? "Publishing…" : "Published"}</p>
+              <MdArrowOutward size={20} />
+            </button>
+          </div>
         </div>
 
-        <p className="text-xs text-gray-500 mt-1">
-          {selectedCategories.length} / 5 selected
-        </p>
+        <div
+          className={`transition-opacity duration-300 ${
+            isPublishing ? "opacity-40 pointer-events-none select-none" : ""
+          }`}
+        >
+          <input
+            type="text"
+            placeholder="Title"
+            className="w-full text-[32px] font-serif outline-none my-6"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
 
-        {categoryError && (
-          <p className="text-xs text-red-500 mt-1">{categoryError}</p>
-        )}
+          <div className="w-full rounded-sm mb-6 bg-gray-100 flex justify-center items-center h-80 border border-gray-300 relative overflow-hidden">
+            {!featuredImageUrl ? (
+              <>
+                <button onClick={() => fileInputRef.current.click()}>
+                  <PlusCircleIcon className="w-12 h-12 text-gray-500 cursor-pointer" />
+                </button>
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  className="hidden"
+                  onChange={handleFeaturedImageUpload}
+                />
+              </>
+            ) : (
+              <>
+                <img
+                  src={featuredImageUrl}
+                  alt="Featured"
+                  className="w-full h-full object-cover"
+                />
+
+                {/* Edit / Replace */}
+                <button
+                  onClick={() => fileInputRef.current.click()}
+                  className="absolute bottom-3 right-3 bg-black/70 text-white text-xs px-3 py-1 rounded-full"
+                >
+                  Edit
+                </button>
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  className="hidden"
+                  onChange={handleFeaturedImageUpload}
+                />
+              </>
+            )}
+          </div>
+
+          <JoditEditor
+            ref={editor}
+            value={content}
+            onChange={(newContent) => setContent(newContent)}
+          />
+
+          {/* Categories */}
+          <div className="my-6">
+            <p className="text-sm text-gray-600 mb-2">
+              Choose up to 5 categories (min 3)
+            </p>
+
+            <div className="flex flex-wrap gap-2">
+              {CATEGORIES.map((cat) => {
+                const active = selectedCategories.includes(cat);
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => toggleCategory(cat)}
+                    className={`px-4 py-1.5 rounded-full text-sm border transition ${
+                      active
+                        ? "bg-black text-white border-black"
+                        : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                );
+              })}
+            </div>
+
+            <p className="text-xs text-gray-500 mt-1">
+              {selectedCategories.length} / 5 selected
+            </p>
+
+            {categoryError && (
+              <p className="text-xs text-red-500 mt-1">{categoryError}</p>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
