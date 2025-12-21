@@ -10,7 +10,7 @@ const DATABASE_ID = "693d3d220017a846a1c0";
 const BOOKMARKS_COLLECTION = "article_bookmarks";
 const ARTICLES_COLLECTION = "articles";
 
-const YourReadingLIst = () => {
+const YourReadingLIst = ({refreshKey}) => {
   const { user } = useAuthContext();
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -58,7 +58,7 @@ const YourReadingLIst = () => {
     };
 
     fetchBookmarks();
-  }, [user?.$id]);
+  }, [user?.$id, refreshKey]);
   if (loading) {
     return <p className="text-sm text-gray-500">Loading bookmarks…</p>;
   }
@@ -66,6 +66,13 @@ const YourReadingLIst = () => {
   if (articles.length === 0) {
     return <p className="text-sm text-gray-500">No bookmarks yet.</p>;
   }
+
+  const truncateText = (text, maxLength = 50) => {
+  if (!text) return "";
+  return text.length > maxLength
+    ? text.slice(0, maxLength) + "…"
+    : text;
+};
   console.log(articles);
 
   const getAvatarUrl = (fileId) => {
@@ -98,7 +105,7 @@ const YourReadingLIst = () => {
                   </div>
                   <p className="text-sm text-gray-500">{article.authorName}</p>
                 </div>
-                <p className="text-[16px] mt-2 font-medium">{article.title}</p>
+                <p className="text-[16px] mt-2 font-medium"> {truncateText(article.title, 30)}</p>
                 <p className="text-xs text-gray-500 mt-1">
                   {new Date(article.$createdAt).toDateString()}
                 </p>

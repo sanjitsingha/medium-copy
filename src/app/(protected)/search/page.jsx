@@ -7,13 +7,20 @@ import Image from "next/image";
 import { databases, storage } from "@/lib/appwrite";
 import { IoBookmarkOutline, IoBulbOutline } from "react-icons/io5";
 import { IoIosShareAlt } from "react-icons/io";
-
+import StoriesCardHorizontal from "@/app/components/StoriesCardHorizontal";
+import useArticleActions from "@/hooks/useArticleActions";
+import { useAuthContext } from "@/context/AuthContext";
 const page = () => {
+  const { user } = useAuthContext();
   const searchParams = useSearchParams();
   const query = searchParams.get("q");
   const [activeTab, setActiveTab] = useState("stories");
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const { likes, bookmarks, toggleLike, toggleBookmark } = useArticleActions(
+    user?.$id
+  );
 
   useEffect(() => {
     if (!query) return;
@@ -81,64 +88,16 @@ const page = () => {
         )}
 
         {!loading &&
-          articles.map((article) => {
-            const imageUrl = article.featuredImage
-              ? storage
-                  .getFileView("article-images", article.featuredImage)
-                  .toString()
-              : null;
-
-            return (
-              <div
-                key={article.$id}
-                className="border-b border-gray-200 pb-8 mb-8"
-              >
-                {/* Author */}
-                <div className="flex items-center gap-4 text-xs text-gray-500">
-                  <p>{article.authorName}</p>
-                  <p>{new Date(article.$updatedAt).toDateString()}</p>
-                </div>
-
-                {/* Content */}
-                <Link href={`/read/${article.slug}`}>
-                  <div className="flex gap-4 mt-2 cursor-pointer">
-                    <div>
-                      <p className="text-[22px] font-semibold leading-tight">
-                        {article.title}
-                      </p>
-                      <p className="text-sm text-gray-500 mt-2 line-clamp-2">
-                        {article.content.replace(/<[^>]*>/g, "").slice(0, 200)}…
-                      </p>
-                    </div>
-
-                    {imageUrl && (
-                      <div className="min-w-[160px] rounded overflow-hidden">
-                        <Image
-                          src={imageUrl}
-                          alt={article.title}
-                          width={160}
-                          height={160}
-                          className="object-cover"
-                        />
-                      </div>
-                    )}
-                  </div>
-                </Link>
-                   {/* Actions */}
-                            <div className="w-full flex gap-10 mt-4 text-gray-500">
-                              <button>
-                                <IoBulbOutline size={16} />
-                              </button>
-                              <button>
-                                <IoIosShareAlt size={16} />
-                              </button>
-                              <button>
-                                <IoBookmarkOutline size={16} />
-                              </button>
-                            </div>
-              </div>
-            );
-          })}
+          articles.map((article) => (
+            <StoriesCardHorizontal
+              key={article.$id}
+              article={article}
+              isLiked={likes.has(article.$id)}
+              isBookmarked={bookmarks.has(article.$id)}
+              onLike={toggleLike}
+              onBookmark={toggleBookmark}
+            />
+          ))}
       </div>
     </div>
   );
