@@ -14,19 +14,17 @@ import Link from "next/link";
 import { GoChevronRight } from "react-icons/go";
 import { MdArrowOutward } from "react-icons/md";
 import { useRouter } from "next/navigation";
+
 export default function WritePage() {
   const { id } = useParams();
   const searchParams = useSearchParams()
   const type = searchParams.get("type") || "draft";
-
   const loadingBarRef = useRef(null);
-
   const { user } = useAuthContext();
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const editor = useRef(null);
-
   const [featuredImage, setFeaturedImage] = useState(null);
   const [featuredImageUrl, setFeaturedImageUrl] = useState("");
   const fileInputRef = useRef(null);
@@ -142,6 +140,7 @@ const saveDraft = async () => {
     }
 
     alert("Draft updated");
+    router.push('/stories')
   } catch (err) {
     alert(err.message);
   }
@@ -176,6 +175,11 @@ const saveDraft = async () => {
           content,
           featuredImage,
           authorId: user.$id,
+          authorName: user.name || "Anonymous",
+          slug: title
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/(^-|-$)+/g, ""),
           status: "published",
           categories: selectedCategories,
           views: 0,
@@ -206,7 +210,6 @@ const saveDraft = async () => {
   return (
     <>
       <LoadingBar color="#16a34a" ref={loadingBarRef} />
-
       <div className="w-full max-w-[800px] mx-auto pt-10">
         <div className="w-full mb-4 flex justify-between">
           <div className="  flex items-center w-full">
@@ -274,7 +277,6 @@ const saveDraft = async () => {
                   alt="Featured"
                   className="w-full h-full object-cover"
                 />
-
                 {/* Edit / Replace */}
                 <button
                   onClick={() => fileInputRef.current.click()}
@@ -293,13 +295,11 @@ const saveDraft = async () => {
               </>
             )}
           </div>
-
           <JoditEditor
             ref={editor}
             value={content}
             onChange={(newContent) => setContent(newContent)}
           />
-
           {/* Categories */}
           <div className="my-6">
             <p className="text-sm text-gray-600 mb-2">
