@@ -144,7 +144,7 @@ const page = () => {
                       <p className="text-[12px] text-gray-500 mt-1">
                         Last edited{" "}
                         {new Date(draft.$updatedAt).toLocaleDateString()}
-                      </p>
+                      </p>  
                     </div>
                     <div className="flex gap-6">
                       <Link href={`/write/${draft.$id}`} className="cursor-pointer">
