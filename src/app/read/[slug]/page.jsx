@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { databases, storage, ID } from "@/lib/appwrite";
 import { Query, Permission, Role } from "appwrite";
@@ -15,6 +15,7 @@ import StoriesCard from "@/app/components/StoriesCard";
 
 export default function ReadArticlePage() {
 
+  const readTimerRef = useRef(null);
   const BUCKET_ID = "article-images"; // or whatever your real bucket ID is
   const { user } = useAuthContext();
 
@@ -28,11 +29,73 @@ export default function ReadArticlePage() {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [bookmarkDocId, setBookmarkDocId] = useState(null);
 
+
   const getAvatarUrl = (fileId) => {
     if (!fileId) return "/default-avatar.png";
     return storage.getFileView(BUCKET_ID, fileId);
   };
+  const incrementView = async (articleId) => {
+    const viewed = sessionStorage.getItem(`viewed_${articleId}`);
+    if (viewed) return;
 
+    try {
+      await databases.updateDocument(
+        "693d3d220017a846a1c0",
+        "articles",
+        articleId,
+        {
+          views: article.views + 1,
+        }
+      );
+      sessionStorage.setItem(`viewed_${articleId}`, "true");
+    } catch (err) {
+      console.error("View increment failed", err);
+    }
+  };
+
+    useEffect(() => {
+    if (!article?.$id) return;
+
+    const alreadyRead = sessionStorage.getItem(`read_${article.$id}`);
+    if (alreadyRead) return;
+
+    // start 30s timer
+    readTimerRef.current = setTimeout(() => {
+      incrementRead(article.$id);
+    }, 30000); // 30 seconds
+
+    return () => {
+      // cleanup if user leaves early
+      if (readTimerRef.current) {
+        clearTimeout(readTimerRef.current);
+      }
+    };
+  }, [article]);
+
+  const incrementRead = async (articleId) => {
+    const read = sessionStorage.getItem(`read_${articleId}`);
+    if (read) return;
+
+    try {
+      await databases.updateDocument(
+        "693d3d220017a846a1c0",
+        "articles",
+        articleId,
+        {
+          reads: article.reads + 1,
+        }
+      );
+      sessionStorage.setItem(`read_${articleId}`, "true");
+    } catch (err) {
+      console.error("Read increment failed", err);
+    }
+  };
+
+  useEffect(() => {
+    if (article?.$id) {
+      incrementView(article.$id);
+    }
+  }, [article]);
 
   useEffect(() => {
     if (!user || !article?.$id) return;
@@ -237,7 +300,7 @@ export default function ReadArticlePage() {
     : null;
 
   return (
-    
+
     <div className="max-w-[800px] mx-auto pt-2">
       <div className="bg-gray-200 w-full h-[120px] mt-10 rounded-sm flex items-center justify-center">
         {/* THis div will be used to adverstement later on */}
@@ -304,13 +367,13 @@ export default function ReadArticlePage() {
       <div className="w-full py-10">
         <p className="text-[22px] font-semibold tracking-tighter">Related Stories</p>
         <div className="mt-4 grid grid-cols-2">
-          <StoriesCard/>
-          <StoriesCard/>
+          <StoriesCard />
+          <StoriesCard />
         </div>
       </div>
-      
+
     </div>
-   
-    
+
+
   );
 }
