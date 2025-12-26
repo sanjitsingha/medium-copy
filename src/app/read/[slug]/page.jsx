@@ -1,217 +1,167 @@
 "use client";
+
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { databases, storage, ID } from "@/lib/appwrite";
 import { Query, Permission, Role } from "appwrite";
 import HTMLReactParser from "html-react-parser";
-import Link from "next/link";
-import { GoBookmark } from "react-icons/go";
-import { GoBookmarkFill } from "react-icons/go";
+import { GoBookmark, GoBookmarkFill } from "react-icons/go";
 import { IoBulbOutline } from "react-icons/io5";
 import { IoIosShareAlt } from "react-icons/io";
 import { useAuthContext } from "@/context/AuthContext";
 import RelatedArticles from "@/app/components/RelatedArticles";
-import StoriesCard from "@/app/components/StoriesCard";
+
+const DATABASE_ID = "693d3d220017a846a1c0";
+const ARTICLES_COLLECTION = "articles";
+const BUCKET_ID = "article-images";
 
 export default function ReadArticlePage() {
-
-  const readTimerRef = useRef(null);
-  const BUCKET_ID = "article-images"; // or whatever your real bucket ID is
-  const { user } = useAuthContext();
-
   const { slug } = useParams();
+  const { user } = useAuthContext();
+  const readTimerRef = useRef(null);
 
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isLiked, setIsLiked] = useState(false);
+
   const [likesCount, setLikesCount] = useState(0);
+  const [isLiked, setIsLiked] = useState(false);
   const [likeDocId, setLikeDocId] = useState(null);
+
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [bookmarkDocId, setBookmarkDocId] = useState(null);
 
-
   const getAvatarUrl = (fileId) => {
     if (!fileId) return "/default-avatar.png";
-    return storage.getFileView(BUCKET_ID, fileId);
-  };
-  const incrementView = async (articleId) => {
-    const viewed = sessionStorage.getItem(`viewed_${articleId}`);
-    if (viewed) return;
-
-    try {
-      await databases.updateDocument(
-        "693d3d220017a846a1c0",
-        "articles",
-        articleId,
-        {
-          views: article.views + 1,
-        }
-      );
-      sessionStorage.setItem(`viewed_${articleId}`, "true");
-    } catch (err) {
-      console.error("View increment failed", err);
-    }
+    return storage.getFileView(BUCKET_ID, fileId).toString();
   };
 
-    useEffect(() => {
-    if (!article?.$id) return;
-
-    const alreadyRead = sessionStorage.getItem(`read_${article.$id}`);
-    if (alreadyRead) return;
-
-    // start 30s timer
-    readTimerRef.current = setTimeout(() => {
-      incrementRead(article.$id);
-    }, 30000); // 30 seconds
-
-    return () => {
-      // cleanup if user leaves early
-      if (readTimerRef.current) {
-        clearTimeout(readTimerRef.current);
-      }
-    };
-  }, [article]);
-
-  const incrementRead = async (articleId) => {
-    const read = sessionStorage.getItem(`read_${articleId}`);
-    if (read) return;
-
-    try {
-      await databases.updateDocument(
-        "693d3d220017a846a1c0",
-        "articles",
-        articleId,
-        {
-          reads: article.reads + 1,
-        }
-      );
-      sessionStorage.setItem(`read_${articleId}`, "true");
-    } catch (err) {
-      console.error("Read increment failed", err);
-    }
-  };
-
-  useEffect(() => {
-    if (article?.$id) {
-      incrementView(article.$id);
-    }
-  }, [article]);
-
-  useEffect(() => {
-    if (!user || !article?.$id) return;
-
-    const checkLikeStatus = async () => {
-      try {
-        const res = await databases.listDocuments(
-          "693d3d220017a846a1c0",
-          "article_likes",
-          [
-            Query.equal("articleId", [article.$id]),
-            Query.equal("userId", [user.$id]),
-          ]
-        );
-
-        if (res.documents.length > 0) {
-          setIsLiked(true);
-          setLikeDocId(res.documents[0].$id);
-        }
-      } catch (err) {
-        console.error("Like check failed:", err);
-      }
-    };
-    const checkBookmark = async () => {
-      try {
-        const res = await databases.listDocuments(
-          "693d3d220017a846a1c0",
-          "article_bookmarks",
-          [
-            Query.equal("articleId", [article.$id]),
-            Query.equal("userId", [user.$id]),
-          ]
-        );
-
-        if (res.documents.length > 0) {
-          setIsBookmarked(true);
-          setBookmarkDocId(res.documents[0].$id);
-        } else {
-          setIsBookmarked(false);
-          setBookmarkDocId(null);
-        }
-      } catch (err) {
-        console.error("Bookmark check failed:", err);
-      }
-    };
-
-    checkLikeStatus();
-    checkBookmark();
-  }, [article?.$id, user]);
-
+  /* ---------------- FETCH ARTICLE ---------------- */
   useEffect(() => {
     if (!slug) return;
 
     const fetchArticle = async () => {
       try {
-        const response = await databases.listDocuments(
-          "693d3d220017a846a1c0", // DATABASE ID
-          "articles", // COLLECTION ID
+        const res = await databases.listDocuments(
+          DATABASE_ID,
+          ARTICLES_COLLECTION,
           [Query.equal("slug", [slug])]
         );
 
-        if (response.documents.length > 0) {
-          setArticle(response.documents[0]);
-        }
-      } catch (error) {
-        console.error("Fetch article error:", error);
+        if (!res.documents.length) return;
+
+        const doc = res.documents[0];
+        setArticle(doc);
+        setLikesCount(doc.likes || 0);
+      } catch (err) {
+        console.error("Fetch article failed:", err);
       } finally {
         setLoading(false);
-        if (article?.likes !== undefined) {
-          setLikesCount(article.likes);
-        }
       }
     };
 
     fetchArticle();
-  }, [slug, article]);
+  }, [slug]);
 
+  /* ---------------- VIEW COUNT (once/session) ---------------- */
+  useEffect(() => {
+    if (!article?.$id) return;
+
+    const viewed = sessionStorage.getItem(`viewed_${article.$id}`);
+    if (viewed) return;
+
+    databases.updateDocument(
+      DATABASE_ID,
+      ARTICLES_COLLECTION,
+      article.$id,
+      { views: (article.views || 0) + 1 }
+    ).catch(console.error);
+
+    sessionStorage.setItem(`viewed_${article.$id}`, "true");
+  }, [article?.$id]);
+
+  /* ---------------- READ COUNT (30s timer) ---------------- */
+  useEffect(() => {
+    if (!article?.$id) return;
+
+    const read = sessionStorage.getItem(`read_${article.$id}`);
+    if (read) return;
+
+    readTimerRef.current = setTimeout(() => {
+      databases.updateDocument(
+        DATABASE_ID,
+        ARTICLES_COLLECTION,
+        article.$id,
+        { reads: (article.reads || 0) + 1 }
+      ).catch(console.error);
+
+      sessionStorage.setItem(`read_${article.$id}`, "true");
+    }, 30000);
+
+    return () => clearTimeout(readTimerRef.current);
+  }, [article?.$id]);
+
+  /* ---------------- LIKE & BOOKMARK STATUS ---------------- */
+  useEffect(() => {
+    if (!user || !article?.$id) return;
+
+    const initStatus = async () => {
+      try {
+        const [likesRes, bookmarkRes] = await Promise.all([
+          databases.listDocuments(DATABASE_ID, "article_likes", [
+            Query.equal("articleId", [article.$id]),
+            Query.equal("userId", [user.$id]),
+          ]),
+          databases.listDocuments(DATABASE_ID, "article_bookmarks", [
+            Query.equal("articleId", [article.$id]),
+            Query.equal("userId", [user.$id]),
+          ]),
+        ]);
+
+        if (likesRes.documents.length) {
+          setIsLiked(true);
+          setLikeDocId(likesRes.documents[0].$id);
+        }
+
+        if (bookmarkRes.documents.length) {
+          setIsBookmarked(true);
+          setBookmarkDocId(bookmarkRes.documents[0].$id);
+        }
+      } catch (err) {
+        console.error("Status check failed:", err);
+      }
+    };
+
+    initStatus();
+  }, [user, article?.$id]);
+
+  /* ---------------- LIKE TOGGLE ---------------- */
   const toggleLike = async () => {
-    if (!user) {
-      alert("Please login to like this article");
-      return;
-    }
+    if (!user) return alert("Please login to like");
 
     try {
-      // UNLIKE
       if (isLiked) {
         await databases.deleteDocument(
-          "693d3d220017a846a1c0",
+          DATABASE_ID,
           "article_likes",
           likeDocId
         );
 
         await databases.updateDocument(
-          "693d3d220017a846a1c0",
-          "articles",
+          DATABASE_ID,
+          ARTICLES_COLLECTION,
           article.$id,
-          {
-            likes: Math.max(likesCount - 1, 0),
-          }
+          { likes: Math.max(likesCount - 1, 0) }
         );
 
+        setLikesCount((v) => Math.max(v - 1, 0));
         setIsLiked(false);
-        setLikesCount((prev) => Math.max(prev - 1, 0));
         setLikeDocId(null);
-      }
-
-      // LIKE
-      else {
-        const likeDoc = await databases.createDocument(
-          "693d3d220017a846a1c0",
+      } else {
+        const doc = await databases.createDocument(
+          DATABASE_ID,
           "article_likes",
           ID.unique(),
-          {
-            articleId: article.$id,
-            userId: user.$id,
-          },
+          { articleId: article.$id, userId: user.$id },
           [
             Permission.read(Role.user(user.$id)),
             Permission.delete(Role.user(user.$id)),
@@ -219,53 +169,40 @@ export default function ReadArticlePage() {
         );
 
         await databases.updateDocument(
-          "693d3d220017a846a1c0",
-          "articles",
+          DATABASE_ID,
+          ARTICLES_COLLECTION,
           article.$id,
-          {
-            likes: likesCount + 1,
-          }
+          { likes: likesCount + 1 }
         );
 
+        setLikesCount((v) => v + 1);
         setIsLiked(true);
-        setLikesCount((prev) => prev + 1);
-        setLikeDocId(likeDoc.$id);
+        setLikeDocId(doc.$id);
       }
     } catch (err) {
-      console.error("Toggle like error:", err);
+      console.error("Like toggle failed:", err);
     }
   };
 
+  /* ---------------- BOOKMARK TOGGLE ---------------- */
   const toggleBookmark = async () => {
-    if (!user) {
-      alert("Please login to bookmark this article");
-      return;
-    }
+    if (!user) return alert("Please login to bookmark");
 
     try {
-      // REMOVE BOOKMARK
-      if (isBookmarked && bookmarkDocId) {
+      if (isBookmarked) {
         await databases.deleteDocument(
-          "693d3d220017a846a1c0",
+          DATABASE_ID,
           "article_bookmarks",
           bookmarkDocId
         );
-
         setIsBookmarked(false);
         setBookmarkDocId(null);
-      }
-
-      // ADD BOOKMARK
-      else {
+      } else {
         const doc = await databases.createDocument(
-          "693d3d220017a846a1c0",
+          DATABASE_ID,
           "article_bookmarks",
           ID.unique(),
-          {
-            articleId: article.$id,
-            userId: user.$id,
-            // createdAt: new Date().toISOString(),
-          },
+          { articleId: article.$id, userId: user.$id },
           [
             Permission.read(Role.user(user.$id)),
             Permission.delete(Role.user(user.$id)),
@@ -276,104 +213,86 @@ export default function ReadArticlePage() {
         setBookmarkDocId(doc.$id);
       }
     } catch (err) {
-      console.error("Toggle bookmark error:", err);
+      console.error("Bookmark toggle failed:", err);
     }
   };
 
-  if (loading) {
-    return <p className="text-center mt-20">Loading article…</p>;
-  }
-
-  if (!article) {
-    return <p className="text-center mt-20">Article not found</p>;
-  }
-
-  // console.log(article);
+  /* ---------------- RENDER ---------------- */
+  if (loading) return <p className="text-center mt-20">Loading article…</p>;
+  if (!article) return <p className="text-center mt-20">Article not found</p>;
 
   const imageUrl = article.featuredImage
-    ? storage
-      .getFileView(
-        "article-images", // BUCKET ID
-        article.featuredImage
-      )
-      .toString()
+    ? storage.getFileView(BUCKET_ID, article.featuredImage).toString()
     : null;
 
   return (
-
     <div className="max-w-[800px] mx-auto pt-2">
       <div className="bg-gray-200 w-full h-[120px] mt-10 rounded-sm flex items-center justify-center">
-        {/* THis div will be used to adverstement later on */}
         <p className="text-gray-500">Advertisment Area</p>
       </div>
+
       <h1 className="text-[42px] font-serif pt-6 leading-tight">
         {article.title}
       </h1>
+
+      {/* AUTHOR SECTION */}
       <div className="w-full flex border-l-6 pl-4 border-green-600 my-8 justify-between">
         <div className="text-gray-500 text-sm flex gap-4 items-center">
-          <div>
-            <img
-              src={getAvatarUrl(article.authorAvatar)}
-              className="w-6 h-6 rounded-full object-cover"
-              alt={article.authorName}
-            />
-          </div>
+          <img
+            src={getAvatarUrl(article.authorAvatar)}
+            className="w-6 h-6 rounded-full object-cover"
+            alt={article.authorName}
+          />
           <p>{article.authorName || "Admin"}</p>
           <p>{new Date(article.$createdAt).toDateString()}</p>
-          <p>{article.readTime + "min Read"}</p>
+          <p>{article.readTime} min read</p>
         </div>
-        <div>
-          <button onClick={toggleBookmark} className="cursor-pointer">
-            {isBookmarked ? (
-              <GoBookmarkFill size={22} />
-            ) : (
-              <GoBookmark size={22} />
-            )}
-          </button>
-        </div>
+
+        <button onClick={toggleBookmark}>
+          {isBookmarked ? <GoBookmarkFill size={22} /> : <GoBookmark size={22} />}
+        </button>
       </div>
+
       {imageUrl && (
-        <img
-          src={imageUrl}
-          alt={article.title}
-          className="w-full my-8 rounded"
-        />
+        <img src={imageUrl} className="w-full my-8 rounded" alt={article.title} />
       )}
 
-      <div className="prose text-[20px] prose-lg max-w-none">
+      <div className="prose prose-lg max-w-none text-[20px]">
         {HTMLReactParser(article.content)}
       </div>
-      <div className=" mt-10 w-full  justify-end flex gap-8 h-full">
+
+      {/* LIKE / SHARE */}
+      <div className="mt-10 flex justify-end gap-8">
         <div className="flex items-center gap-2">
           <button
             onClick={toggleLike}
-            className={`h-8 w-8 rounded-full flex items-center justify-center cursor-pointer ${isLiked ? "bg-green-600 text-white" : "bg-gray-300"
-              }`}
+            className={`h-8 w-8 rounded-full flex items-center justify-center ${
+              isLiked ? "bg-green-600 text-white" : "bg-gray-300"
+            }`}
           >
             <IoBulbOutline size={18} />
           </button>
-
           <span className="text-sm text-gray-500">{likesCount}</span>
         </div>
-        <button className="bg-gray-300 h-8 w-8 rounded-full flex items-center justify-center cursor-pointer">
+
+        <button className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
           <IoIosShareAlt size={18} />
         </button>
       </div>
+
       <div className="bg-gray-200 w-full h-[120px] mt-10 rounded-sm flex items-center justify-center">
-        {/* THis div will be used to adverstement later on */}
         <p className="text-gray-500 text-sm">Advertisment Area</p>
       </div>
 
       <div className="w-full py-10">
-        <p className="text-[22px] font-semibold tracking-tighter">Related Stories</p>
-        <div className="mt-4 grid grid-cols-2">
-          <StoriesCard />
-          <StoriesCard />
-        </div>
+        <p className="text-[22px] font-semibold tracking-tighter">
+          Related Stories
+        </p>
+        <RelatedArticles
+          categories={article.categories}
+          currentId={article.$id}
+        />
       </div>
-
     </div>
-
-
   );
 }
