@@ -1,34 +1,82 @@
-'use client'
-import React, { useState } from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { useAuthContext } from "@/context/AuthContext";
+import { databases } from "@/lib/appwrite";
+import { Query } from "appwrite";
 import StatsLineChart from "@/app/components/StatsLineChart";
+
+const DATABASE_ID = "693d3d220017a846a1c0";
+const ARTICLES_COLLECTION = "articles";
+
 const page = () => {
+  const { user } = useAuthContext();
 
-
+  const [stories, setStories] = useState([]);
+  const [loadingStories, setLoadingStories] = useState(true);
   const [range, setRange] = useState("month");
 
+  /* ---------------- FETCH USER STORIES ---------------- */
+  useEffect(() => {
+    if (!user) return;
 
-  // dummy data (later replace with Appwrite stats)
-  const stories = [
-    {
-      id: 1,
-      title: "Why consistency beats motivation",
-      views: 432,
-      reads: 410,
-    },
-    {
-      id: 2,
-      title: "I quit overthinking and this happened",
-      views: 312,
-      reads: 298,
-    },
-    {
-      id: 3,
-      title: "Building Open Thoughts in public",
-      views: 278,
-      reads: 265,
-    },
-  ];
+    const fetchUserStories = async () => {
+      try {
+        const res = await databases.listDocuments(
+          DATABASE_ID,
+          ARTICLES_COLLECTION,
+          [
+            Query.equal("authorId", [user.$id]),
+            Query.orderDesc("$createdAt"),
+            Query.limit(20),
+          ]
+        );
 
+        setStories(res.documents);
+      } catch (err) {
+        console.error("Failed to fetch user stories", err);
+      } finally {
+        setLoadingStories(false);
+      }
+    };
+
+    fetchUserStories();
+  }, [user]);
+
+  /* ---------------- DATE RANGE HELPERS ---------------- */
+  const now = new Date();
+
+  const isInRange = (date, range) => {
+    const d = new Date(date);
+
+    switch (range) {
+      case "today":
+        return d.toDateString() === now.toDateString();
+
+      case "24h":
+        return now - d <= 24 * 60 * 60 * 1000;
+
+      case "7d":
+        return now - d <= 7 * 24 * 60 * 60 * 1000;
+
+      case "month":
+        return (
+          d.getMonth() === now.getMonth() &&
+          d.getFullYear() === now.getFullYear()
+        );
+
+      case "6m":
+        return now - d <= 6 * 30 * 24 * 60 * 60 * 1000;
+
+      case "1y":
+        return now - d <= 365 * 24 * 60 * 60 * 1000;
+
+      default:
+        return true;
+    }
+  };
+
+  /* ---------------- RANGE META ---------------- */
   const RANGE_OPTIONS = [
     { label: "Today", value: "today" },
     { label: "Last 24 hours", value: "24h" },
@@ -37,55 +85,66 @@ const page = () => {
     { label: "Last 6 months", value: "6m" },
     { label: "Last 1 year", value: "1y" },
   ];
+
   const RANGE_META = {
-    today: {
-      title: "Today",
-      subtitle: "Today (UTC)",
-    },
-    "24h": {
-      title: "Last 24 hours",
-      subtitle: "Last 24 hours (UTC)",
-    },
-    "7d": {
-      title: "Last 7 days",
-      subtitle: "Last 7 days (UTC)",
-    },
-    month: {
-      title: "Monthly",
-      subtitle: "December 1, 2025 – Today (UTC)",
-    },
-    "6m": {
-      title: "Last 6 months",
-      subtitle: "Last 6 months (UTC)",
-    },
-    "1y": {
-      title: "Last 1 year",
-      subtitle: "Last 12 months (UTC)",
-    },
+    today: { title: "Today", subtitle: "Today (UTC)" },
+    "24h": { title: "Last 24 hours", subtitle: "Last 24 hours (UTC)" },
+    "7d": { title: "Last 7 days", subtitle: "Last 7 days (UTC)" },
+    month: { title: "Monthly", subtitle: "This month (UTC)" },
+    "6m": { title: "Last 6 months", subtitle: "Last 6 months (UTC)" },
+    "1y": { title: "Last 1 year", subtitle: "Last 12 months (UTC)" },
   };
 
+  /* ---------------- FILTER STORIES ---------------- */
+  const filteredStories = stories.filter((story) =>
+    isInRange(story.$createdAt, range)
+  );
 
-  // dummy analytics per range
-  const statsByRange = {
-    today: { views: 54, reads: 49 },
-    "24h": { views: 120, reads: 110 },
-    "7d": { views: 540, reads: 515 },
-    month: { views: 1234, reads: 1225 },
-    "6m": { views: 6840, reads: 6602 },
-    "1y": { views: 14230, reads: 13910 },
-  };
-  const { views, reads } = statsByRange[range];
-  const readRatio = Math.round((reads / views) * 100);
+  /* ---------------- BUILD STATS MAP (FIXED) ---------------- */
+  const statsMap = {};
+
+  filteredStories.forEach((story) => {
+    const dateKey = new Date(story.$createdAt).toLocaleDateString();
+
+    if (!statsMap[dateKey]) {
+      statsMap[dateKey] = { views: 0, reads: 0 };
+    }
+
+    statsMap[dateKey].views += story.views || 0;
+    statsMap[dateKey].reads += story.reads || 0;
+  });
+
+  /* ---------------- TOTAL STATS ---------------- */
+  const views = filteredStories.reduce(
+    (sum, s) => sum + (s.views || 0),
+    0
+  );
+
+  const reads = filteredStories.reduce(
+    (sum, s) => sum + (s.reads || 0),
+    0
+  );
+
+  const readRatio = views > 0 ? Math.round((reads / views) * 100) : 0;
+
+  /* ---------------- CHART DATA ---------------- */
+  const chartData = Object.entries(statsMap)
+    .map(([label, data]) => ({
+      label,
+      views: data.views,
+      reads: data.reads,
+    }))
+    .sort((a, b) => new Date(a.label) - new Date(b.label));
+
   const { title, subtitle } = RANGE_META[range];
 
+  /* ---------------- RENDER ---------------- */
   return (
     <div className="w-full">
       <div className="max-w-[800px] mx-auto px-4">
-        {/* Page Header */}
+        {/* Header */}
         <div className="pt-8 border-b border-gray-300 pb-4">
-          <p className="text-[22px] font-semibold tracking-tighter">
-            Stats
-          </p>
+          <p className="text-[22px] font-semibold tracking-tighter">Stats</p>
         </div>
 
         {/* Top bar */}
@@ -112,12 +171,16 @@ const page = () => {
         <div className="grid grid-cols-3 gap-4 mt-10">
           <div className="p-4 border border-gray-300 rounded">
             <p className="text-sm text-gray-700">Views</p>
-            <p className="text-[22px] font-semibold mt-2">{views.toLocaleString()}</p>
+            <p className="text-[22px] font-semibold mt-2">
+              {views.toLocaleString()}
+            </p>
           </div>
 
           <div className="p-4 border border-gray-300 rounded">
             <p className="text-sm text-gray-700">Reads</p>
-            <p className="text-[22px] font-semibold mt-2">{reads.toLocaleString()}</p>
+            <p className="text-[22px] font-semibold mt-2">
+              {reads.toLocaleString()}
+            </p>
           </div>
 
           <div className="p-4 border border-gray-300 rounded">
@@ -126,22 +189,32 @@ const page = () => {
           </div>
         </div>
 
-        {/* Graph */}
+        {/* Chart */}
         <div className="mt-12">
           <p className="text-sm font-semibold mb-3">Views over time</p>
           <div className="border border-gray-300 rounded p-4">
-            <StatsLineChart range={range} />
+            <StatsLineChart range={range} data={chartData} />
           </div>
         </div>
 
-        {/* Stories stats */}
+        {/* Stories list */}
         <div className="mt-14">
           <p className="text-sm font-semibold mb-4">Your stories</p>
+
+          {loadingStories && (
+            <p className="text-sm text-gray-500">Loading stories...</p>
+          )}
+
+          {!loadingStories && stories.length === 0 && (
+            <p className="text-sm text-gray-500">
+              No stories published yet.
+            </p>
+          )}
 
           <div className="space-y-4">
             {stories.map((story) => (
               <div
-                key={story.id}
+                key={story.$id}
                 className="flex justify-between items-center border-b border-gray-200 pb-3"
               >
                 <p className="text-sm max-w-[60%] truncate">
@@ -149,14 +222,13 @@ const page = () => {
                 </p>
 
                 <div className="flex gap-6 text-sm text-gray-700">
-                  <span>{story.views} views</span>
-                  <span>{story.reads} reads</span>
+                  <span>{(story.views || 0).toLocaleString()} views</span>
+                  <span>{(story.reads || 0).toLocaleString()} reads</span>
                 </div>
               </div>
             ))}
           </div>
         </div>
-
       </div>
     </div>
   );
