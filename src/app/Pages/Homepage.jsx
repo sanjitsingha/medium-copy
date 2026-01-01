@@ -7,13 +7,13 @@ import { Query } from "appwrite";
 import { useAuthContext } from "@/context/AuthContext";
 import { RiFireLine, RiFireFill } from "react-icons/ri";
 
-
 import { IoIosShareAlt } from "react-icons/io";
 import useArticleActions from "@/hooks/useArticleActions";
 
 import ShimmerArticle from "../components/ShimmerArticle";
 import YourReadingLIst from "../components/YourReadingLIst";
 import StoriesCardHorizontal from "../components/StoriesCardHorizontal";
+import ForYou from "../components/ForYou";
 
 const DB_ID = "693d3d220017a846a1c0";
 const ARTICLES_COLLECTION = "articles";
@@ -23,13 +23,12 @@ const BUCKET_ID = "article-images";
 
 export default function Homepage() {
   const { user } = useAuthContext();
-  const { likes, bookmarks, toggleLike, toggleBookmark, version } = useArticleActions(
-    user?.$id
-  );
+  const { likes, bookmarks, toggleLike, toggleBookmark, version } =
+    useArticleActions(user?.$id);
 
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("explore");
+  const [activeTab, setActiveTab] = useState("for-you");
 
   const [userLikes, setUserLikes] = useState(new Set());
   const [userBookmarks, setUserBookmarks] = useState(new Set());
@@ -80,9 +79,6 @@ export default function Homepage() {
     fetchData();
   }, [user?.$id]);
 
-  
-  
-
   /* ================= HELPERS ================= */
   const getImageUrl = (fileId) =>
     fileId ? storage.getFileView(BUCKET_ID, fileId).toString() : null;
@@ -95,7 +91,7 @@ export default function Homepage() {
         <div className="flex-1 pt-4">
           {/* Tabs */}
           <div className="border-b border-gray-200 mb-8 flex gap-8">
-            {["explore", "for-you"].map((tab) => (
+            {["for-you", "explore"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -111,21 +107,37 @@ export default function Homepage() {
           </div>
 
           {/* Loading */}
-          {loading &&
-            Array.from({ length: 5 }).map((_, i) => <ShimmerArticle key={i} />)}
+          {/* ================= FEED ================= */}
+          {activeTab === "explore" && (
+            <>
+              {loading &&
+                Array.from({ length: 5 }).map((_, i) => (
+                  <ShimmerArticle key={i} />
+                ))}
 
-          {/* Articles */}
-          {!loading &&
-            articles.map((article) => (
-              <StoriesCardHorizontal
-                key={article.$id}
-                article={article}
-                isLiked={likes.has(article.$id)}
-                isBookmarked={bookmarks.has(article.$id)}
-                onLike={toggleLike}
-                onBookmark={toggleBookmark}
-              />
-            ))}
+              {!loading &&
+                articles.map((article) => (
+                  <StoriesCardHorizontal
+                    key={article.$id}
+                    article={article}
+                    isLiked={likes.has(article.$id)}
+                    isBookmarked={bookmarks.has(article.$id)}
+                    onLike={toggleLike}
+                    onBookmark={toggleBookmark}
+                  />
+                ))}
+            </>
+          )}
+
+          {activeTab === "for-you" && (
+            <ForYou
+              user={user}
+              likes={likes}
+              bookmarks={bookmarks}
+              onLike={toggleLike}
+              onBookmark={toggleBookmark}
+            />
+          )}
         </div>
 
         {/* ================= RIGHT SIDEBAR ================= */}

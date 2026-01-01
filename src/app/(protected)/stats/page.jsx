@@ -5,16 +5,34 @@ import { useAuthContext } from "@/context/AuthContext";
 import { databases } from "@/lib/appwrite";
 import { Query } from "appwrite";
 import StatsLineChart from "@/app/components/StatsLineChart";
+import { ChevronRightIcon } from "@heroicons/react/24/outline";
+import { MdOutlineNavigateNext } from "react-icons/md";
 
 const DATABASE_ID = "693d3d220017a846a1c0";
 const ARTICLES_COLLECTION = "articles";
+const STORIES_PER_PAGE = 4;
 
-const page = () => {
+const Page = () => {
   const { user } = useAuthContext();
 
+  /* ---------------- STATE ---------------- */
   const [stories, setStories] = useState([]);
   const [loadingStories, setLoadingStories] = useState(true);
   const [range, setRange] = useState("month");
+  const [pageIndex, setPageIndex] = useState(1);
+
+  /* ---------------- PAGINATION ---------------- */
+  const totalPages = Math.ceil(stories.length / STORIES_PER_PAGE);
+
+  const paginatedStories = stories.slice(
+    (pageIndex - 1) * STORIES_PER_PAGE,
+    pageIndex * STORIES_PER_PAGE
+  );
+
+  /* Reset pagination on range change */
+  useEffect(() => {
+    setPageIndex(1);
+  }, [range]);
 
   /* ---------------- FETCH USER STORIES ---------------- */
   useEffect(() => {
@@ -52,25 +70,19 @@ const page = () => {
     switch (range) {
       case "today":
         return d.toDateString() === now.toDateString();
-
       case "24h":
         return now - d <= 24 * 60 * 60 * 1000;
-
       case "7d":
         return now - d <= 7 * 24 * 60 * 60 * 1000;
-
       case "month":
         return (
           d.getMonth() === now.getMonth() &&
           d.getFullYear() === now.getFullYear()
         );
-
       case "6m":
         return now - d <= 6 * 30 * 24 * 60 * 60 * 1000;
-
       case "1y":
         return now - d <= 365 * 24 * 60 * 60 * 1000;
-
       default:
         return true;
     }
@@ -100,11 +112,12 @@ const page = () => {
     isInRange(story.$createdAt, range)
   );
 
-  /* ---------------- BUILD STATS MAP (FIXED) ---------------- */
+  /* ---------------- BUILD STATS MAP ---------------- */
   const statsMap = {};
 
   filteredStories.forEach((story) => {
-    const dateKey = new Date(story.$createdAt).toLocaleDateString();
+    const d = new Date(story.$createdAt);
+    const dateKey = d.toISOString().split("T")[0]; // YYYY-MM-DD
 
     if (!statsMap[dateKey]) {
       statsMap[dateKey] = { views: 0, reads: 0 };
@@ -115,26 +128,22 @@ const page = () => {
   });
 
   /* ---------------- TOTAL STATS ---------------- */
-  const views = filteredStories.reduce(
-    (sum, s) => sum + (s.views || 0),
-    0
-  );
-
-  const reads = filteredStories.reduce(
-    (sum, s) => sum + (s.reads || 0),
-    0
-  );
-
+  const views = filteredStories.reduce((s, x) => s + (x.views || 0), 0);
+  const reads = filteredStories.reduce((s, x) => s + (x.reads || 0), 0);
   const readRatio = views > 0 ? Math.round((reads / views) * 100) : 0;
 
   /* ---------------- CHART DATA ---------------- */
   const chartData = Object.entries(statsMap)
-    .map(([label, data]) => ({
-      label,
+    .map(([date, data]) => ({
+      date,
+      label: new Date(date).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+      }),
       views: data.views,
       reads: data.reads,
     }))
-    .sort((a, b) => new Date(a.label) - new Date(b.label));
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
 
   const { title, subtitle } = RANGE_META[range];
 
@@ -142,13 +151,11 @@ const page = () => {
   return (
     <div className="w-full">
       <div className="max-w-[800px] mx-auto px-4">
-        {/* Header */}
         <div className="pt-8 border-b border-gray-300 pb-4">
-          <p className="text-[22px] font-semibold tracking-tighter">Stats</p>
+          <p className="text-[22px] font-semibold">Stats</p>
         </div>
 
-        {/* Top bar */}
-        <div className="w-full flex justify-between mt-10 items-end">
+        <div className="flex justify-between mt-10 items-end">
           <div>
             <p className="text-[22px] font-semibold">{title}</p>
             <p className="text-sm text-gray-700">{subtitle}</p>
@@ -167,37 +174,19 @@ const page = () => {
           </select>
         </div>
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-3 gap-4 mt-10">
-          <div className="p-4 border border-gray-300 rounded">
-            <p className="text-sm text-gray-700">Views</p>
-            <p className="text-[22px] font-semibold mt-2">
-              {views.toLocaleString()}
-            </p>
-          </div>
-
-          <div className="p-4 border border-gray-300 rounded">
-            <p className="text-sm text-gray-700">Reads</p>
-            <p className="text-[22px] font-semibold mt-2">
-              {reads.toLocaleString()}
-            </p>
-          </div>
-
-          <div className="p-4 border border-gray-300 rounded">
-            <p className="text-sm text-gray-700">Read ratio</p>
-            <p className="text-[22px] font-semibold mt-2">{readRatio}%</p>
-          </div>
+          <Stat label="Views" value={views} />
+          <Stat label="Reads" value={reads} />
+          <Stat label="Read ratio" value={`${readRatio}%`} />
         </div>
 
-        {/* Chart */}
-        <div className="mt-12">
+        {/* <div className="mt-12">
           <p className="text-sm font-semibold mb-3">Views over time</p>
-          <div className="border border-gray-300 rounded p-4">
+          <div className="border rounded p-4">
             <StatsLineChart range={range} data={chartData} />
           </div>
-        </div>
+        </div> */}
 
-        {/* Stories list */}
         <div className="mt-14">
           <p className="text-sm font-semibold mb-4">Your stories</p>
 
@@ -206,32 +195,62 @@ const page = () => {
           )}
 
           {!loadingStories && stories.length === 0 && (
-            <p className="text-sm text-gray-500">
-              No stories published yet.
-            </p>
+            <p className="text-sm text-gray-500">No stories published yet.</p>
           )}
 
           <div className="space-y-4">
-            {stories.map((story) => (
+            {paginatedStories.map((story) => (
               <div
                 key={story.$id}
-                className="flex justify-between items-center border-b border-gray-200 pb-3"
+                className="flex justify-between border-b border-gray-300 pb-3"
               >
                 <p className="text-sm max-w-[60%] truncate">
                   {story.title}
                 </p>
-
                 <div className="flex gap-6 text-sm text-gray-700">
-                  <span>{(story.views || 0).toLocaleString()} views</span>
-                  <span>{(story.reads || 0).toLocaleString()} reads</span>
+                  <span>{story.views || 0} views</span>
+                  <span>{story.reads || 0} reads</span>
                 </div>
               </div>
             ))}
           </div>
+
+          {totalPages > 1 && (
+            <div className="flex justify-between items-center mt-6">
+              <button
+                disabled={pageIndex === 1}
+                onClick={() => setPageIndex((p) => p - 1)}
+                className="bg-gray-200  rounded-full p-1 cursor-pointer rotate-180 disabled:opacity-40"
+              >
+                <MdOutlineNavigateNext size={26} />
+              </button>
+
+              <p className="text-sm">
+                Page {pageIndex} of {totalPages}
+              </p>
+
+              <button
+                disabled={pageIndex === totalPages}
+                onClick={() => setPageIndex((p) => p + 1)}
+                className=" bg-gray-200  rounded-full p-1 cursor-pointer disabled:opacity-40"
+              >
+                <MdOutlineNavigateNext size={26} />
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-export default page;
+const Stat = ({ label, value }) => (
+  <div className="p-4 border border-gray-300 rounded">
+    <p className="text-sm text-gray-700">{label}</p>
+    <p className="text-[22px] font-semibold mt-2">
+      {value.toLocaleString?.() ?? value}
+    </p>
+  </div>
+);
+
+export default Page;
