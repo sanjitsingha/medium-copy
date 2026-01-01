@@ -15,7 +15,7 @@ export default function ProtectedLayout({ children }) {
       </div>
 
       {/* Mobile bottom nav */}
-      <MobileNav />
+      {/* <MobileNav /> */}
     </ProtectedRoute>
   );
 }

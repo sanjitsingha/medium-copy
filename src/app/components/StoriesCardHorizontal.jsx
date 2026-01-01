@@ -35,9 +35,17 @@ export default function StoriesCardHorizontal({
 
       {/* Content */}
       <Link href={`/read/${article.slug}`}>
-        <div className="flex gap-4 mt-2 cursor-pointer">
+        <div className="flex gap-2 mt-2 cursor-pointer">
           <div className="flex-1">
-            <h2 className="text-xl font-semibold tracking-tight">
+            <h2
+              className="
+    text-lg md:text-xl
+    font-medium md:font-semibold
+    leading-6 md:leading-tight
+    md:tracking-tight
+    line-clamp-2 md:line-clamp-none
+  "
+            >
               {article.title}
             </h2>
             <p className="text-sm text-gray-500 mt-2 line-clamp-2">
@@ -49,7 +57,7 @@ export default function StoriesCardHorizontal({
             <img
               src={imageUrl}
               alt={article.title}
-              className="w-[180px] h-[120px] object-cover rounded"
+              className="w-[130px] h-[70px] md:w-[180px] md:h-[120px] object-cover rounded"
             />
           )}
         </div>

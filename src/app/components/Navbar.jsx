@@ -2,155 +2,182 @@
 
 import Link from "next/link";
 import React, { useState, useRef, useEffect } from "react";
-import SignIn from "./PopUpDialog/SignIn";
 import { useAuthContext } from "@/context/AuthContext";
 import { logoutUser } from "@/lib/logout";
 import { useRouter } from "next/navigation";
-import { MdArrowOutward } from "react-icons/md";
-import {
-  LockOpenIcon,
-  PencilSquareIcon,
-  BellAlertIcon,
-} from "@heroicons/react/24/outline";
-import { CiSearch } from "react-icons/ci";
 import { storage } from "@/lib/appwrite";
 
-const Navbar = () => {
-  const [open, setOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
-  const [showSearchBox, setShowSearchBox] = useState(false);
-  const searchRef = useRef(null);
+import { MdArrowOutward } from "react-icons/md";
+import { CiSearch } from "react-icons/ci";
+import { HiMenuAlt2, HiX } from "react-icons/hi";
+import { PencilSquareIcon } from "@heroicons/react/24/outline";
+import {
+  HomeIcon,
+  UserIcon,
+  BookOpenIcon,
+  ChartBarIcon,
+  QueueListIcon,
+} from "@heroicons/react/24/outline";
 
+const Navbar = () => {
   const { user, loading, setUser } = useAuthContext();
   const router = useRouter();
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+
   const getAvatarUrl = () => {
     if (!user?.prefs?.avatar) return "/default-avatar.png";
-
     return storage.getFileView("article-images", user.prefs.avatar);
   };
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (searchRef.current && !searchRef.current.contains(e.target)) {
-        setShowSearchBox(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const handleLogout = async () => {
     await logoutUser();
     setUser(null);
-    setDropdownOpen(false);
+    setSidebarOpen(false);
     router.refresh();
   };
 
   return (
-    <div className="w-full border-b border-gray-300 h-[70px]">
-      <div className="md:px-10 px-4 lg:px-10 xl:px-10  h-full flex justify-between items-center">
-        {/* LOGO */}
-        <div className="flex items-center gap-4">
-          <Link href={"/"} className="text-xl font-semibold">
-            openthoughts
-          </Link>
+    <>
+      {/* ================= NAVBAR ================= */}
+      <div className="w-full border-b border-gray-300 h-[64px]">
+        <div className="px-4 md:px-10 h-full flex justify-between items-center">
+          {/* LEFT */}
+          <div className="flex items-center gap-3">
+            {/* Mobile menu */}
+            {!loading && user && (
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="md:hidden"
+              >
+                <HiMenuAlt2 size={26} />
+              </button>
+            )}
 
-          {!loading && user && (
-            <div ref={searchRef} className="relative">
-              <span className="flex items-center ">
+            <Link href="/" className="text-xl font-semibold">
+              openthoughts
+            </Link>
+
+            {/* Desktop search */}
+            {!loading && user && (
+              <div className="hidden md:flex items-center relative ml-4">
                 <input
                   type="text"
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
-                  onFocus={() => setShowSearchBox(true)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && searchValue.trim()) {
                       router.push(`/search?q=${searchValue}`);
-                      setShowSearchBox(false);
+                      setSearchValue("");
                     }
                   }}
-                  className="outline-none text-sm w-[300px] bg-gray-100 py-2 px-3 rounded-full"
                   placeholder="Search topics"
+                  className="outline-none text-sm w-[260px] bg-gray-100 py-2 px-3 rounded-full"
                 />
-                <CiSearch className="ml-[-40px]" size={22} />
-              </span>
+                <CiSearch className="absolute right-3" size={18} />
+              </div>
+            )}
+          </div>
 
-              {showSearchBox && (
-                <div className="absolute top-12 left-0 w-[260px] bg-white shadow-md border border-gray-200 rounded-md">
-                  <Link
-                    href="/explore"
-                    onClick={() => setShowSearchBox(false)}
-                    className="flex items-center justify-between px-4 py-3 hover:bg-gray-100"
-                  >
-                    <p>Explore</p>
-                    <MdArrowOutward size={18} />
-                  </Link>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* SIGN IN POPUP */}
-        <SignIn open={open} onClose={() => setOpen(false)} />
-
-        <div className="flex items-center gap-6">
-          {/* ================== LOADING STATE (SHIMMER) ================== */}
-          {loading && (
-            <>
-              <div className="w-[90px] h-[36px] rounded-full shimmer"></div>
-              <div className="w-10 h-10 rounded-full shimmer"></div>
-            </>
-          )}
-
-          {/* ================== LOGGED OUT VIEW ================== */}
-          {!loading && !user && (
-            <Link
-              href={"/signin"}
-              className="text-[14px] bg-black text-white px-8 py-2 rounded-full"
-            >
-              Sign in
-            </Link>
-          )}
-
-          {/* ================== LOGGED IN VIEW ================== */}
-          {!loading && user && (
-            <>
-              <Link
-                className="text-[14px] flex items-center mr-4 gap-2"
-                href="/write"
+          {/* RIGHT */}
+          <div className="flex items-center gap-5">
+            {/* Mobile search icon */}
+            {!loading && user && (
+              <button
+                className="md:hidden"
+                onClick={() => router.push("/search")}
               >
-                <PencilSquareIcon className="size-6 text-black/60 " />
-                <p className="text-black/70">Write</p>
+                <CiSearch size={22} />
+              </button>
+            )}
+
+            {!loading && !user && (
+              <Link
+                href="/signin"
+                className="text-sm bg-black text-white px-6 py-2 rounded-full"
+              >
+                Sign in
               </Link>
+            )}
 
-              {/* <button className="mr-4 cursor-pointer">
-                <BellAlertIcon className="size-6 text-black/60" />
-              </button> */}
+            {!loading && user && (
+              <>
+                <Link
+                  href="/write"
+                  className="hidden md:flex items-center gap-2 text-sm"
+                >
+                  <PencilSquareIcon className="size-5 text-black/60" />
+                  <span className="text-black/70">Write</span>
+                </Link>
 
-              {/* Avatar */}
-              <div className="relative">
-                <Link  href={"/profile"} className="w-8 h-8 cursor-pointer ">
-               
-                 
-                
+                <Link href="/profile">
                   <img
                     src={getAvatarUrl()}
-                    alt="Profile"
                     className="w-8 h-8 rounded-full object-cover"
+                    alt="avatar"
                   />
-               </Link>
-
-              
-              </div>
-            </>
-          )}
+                </Link>
+              </>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* ================= MOBILE SIDEBAR ================= */}
+      {sidebarOpen && (
+        <>
+          {/* Overlay */}
+          <div
+            onClick={() => setSidebarOpen(false)}
+            className="fixed inset-0 bg-black/40 z-40"
+          />
+
+          {/* Drawer */}
+          <div className="fixed top-0 left-0 h-full w-[260px] bg-white z-50 p-5">
+            <div className="flex justify-between items-center mb-12">
+              <p className="text-lg font-semibold">Menu</p>
+              <button onClick={() => setSidebarOpen(false)}>
+                <HiX size={24} />
+              </button>
+            </div>
+
+            <nav className="flex flex-col gap-6 text-sm">
+              <Link className="flex gap-2 text-gray-700 items-center" href="/" onClick={() => setSidebarOpen(false)}>
+                <HomeIcon className="size-5"/> Home
+              </Link>
+
+              <Link className="flex gap-2 items-center text-gray-700" href="/library" onClick={() => setSidebarOpen(false)}>
+                <BookOpenIcon className="size-5"/>
+                Library
+              </Link>
+
+              <Link className="text-gray-700 flex gap-2 items-center" href="/profile" onClick={() => setSidebarOpen(false)}>
+              <UserIcon className="size-5"/>
+                Profile
+              </Link>
+
+              <Link className="text-gray-700 flex gap-2 items-center" href="/stories" onClick={() => setSidebarOpen(false)}>
+                <QueueListIcon className="size-5"/>
+                Stories
+              </Link>
+
+              <Link className="text-gray-700 flex gap-2 items-center" href="/stats" onClick={() => setSidebarOpen(false)}>
+              <ChartBarIcon className="size-5"/>
+                Stats
+              </Link>
+
+              {/* <button
+                onClick={handleLogout}
+                className="text-left text-red-600 mt-6"
+              >
+                Logout
+              </button> */}
+            </nav>
+          </div>
+        </>
+      )}
+    </>
   );
 };
 
