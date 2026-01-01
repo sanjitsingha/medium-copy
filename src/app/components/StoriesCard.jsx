@@ -18,10 +18,10 @@ const StoriesCard = ({ post }) => {
 
   return (
     <Link href={`/read/${post.slug}`}>
-      <div className="w-[380px]">
+      <div className="w-full md:w-[380px]">
         <img
           src={imageUrl}
-          className="w-full h-[200px] object-cover rounded-sm"
+          className="w-full h-[160px] md:h-[200px] object-cover rounded-sm"
           alt={post.title}
         />
 

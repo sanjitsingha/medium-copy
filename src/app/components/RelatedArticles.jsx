@@ -38,7 +38,7 @@ export default function RelatedArticles({ categories, currentId }) {
   if (!posts.length) return null;
 
   return (
-    <div className="mt-4 grid grid-cols-2 gap-6">
+    <div className="mt-4 grid md:grid-cols-2 grid-cols-1 gap-6">
       {posts.map((post) => (
         <StoriesCard key={post.$id} post={post} />
       ))}

@@ -226,18 +226,18 @@ export default function ReadArticlePage() {
     : null;
 
   return (
-    <div className="max-w-[800px] mx-auto pt-2">
+    <div className="max-w-[800px] p-4 md:p-0 mx-auto pt-2">
       <div className="bg-gray-200 w-full h-[120px] mt-10 rounded-sm flex items-center justify-center">
         <p className="text-gray-500">Advertisment Area</p>
       </div>
 
-      <h1 className="text-[42px] font-serif pt-6 leading-tight">
+      <h1 className=" text-[28px] md:text-[42px] font-serif pt-6 leading-tight">
         {article.title}
       </h1>
 
       {/* AUTHOR SECTION */}
       <div className="w-full flex border-l-6 pl-4 border-green-600 my-8 justify-between">
-        <div className="text-gray-500 text-sm flex gap-4 items-center">
+        <div className="text-gray-500 text-xs md:text-sm flex gap-1 md:gap-4 items-center">
           <img
             src={getAvatarUrl(article.authorAvatar)}
             className="w-6 h-6 rounded-full object-cover"
@@ -257,7 +257,7 @@ export default function ReadArticlePage() {
         <img src={imageUrl} className="w-full my-8 rounded" alt={article.title} />
       )}
 
-      <div className="prose prose-lg max-w-none text-[20px]">
+      <div className="prose prose-lg max-w-none text-[14px] md:text-[20px]">
         {HTMLReactParser(article.content)}
       </div>
 
