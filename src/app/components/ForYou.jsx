@@ -5,6 +5,7 @@ import { databases } from "@/lib/appwrite";
 import { Query } from "appwrite";
 import StoriesCardHorizontal from "./StoriesCardHorizontal";
 import ShimmerArticle from "./ShimmerArticle";
+import Link from "next/link";
 
 const DB_ID = "693d3d220017a846a1c0";
 const ARTICLES_COLLECTION = "articles";
@@ -79,9 +80,12 @@ export default function ForYou({
 
   if (articles.length === 0) {
     return (
-      <p className="text-sm text-gray-500">
+     <div>
+       <p className="text-sm text-gray-500">
         No stories match your interests yet.
       </p>
+      <Link className="text-sm bg-black text-white rounded-full px-4 py-2 block w-fit mt-4" href="/explore">Explore Now</Link>
+     </div>
     );
   }
 

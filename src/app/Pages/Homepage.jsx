@@ -28,7 +28,7 @@ export default function Homepage() {
 
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("for-you");
+  const [activeTab, setActiveTab] = useState("explore");
 
   const [userLikes, setUserLikes] = useState(new Set());
   const [userBookmarks, setUserBookmarks] = useState(new Set());

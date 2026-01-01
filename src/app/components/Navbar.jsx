@@ -127,9 +127,9 @@ const Navbar = () => {
                 <p className="text-black/70">Write</p>
               </Link>
 
-              <button className="mr-4 cursor-pointer">
+              {/* <button className="mr-4 cursor-pointer">
                 <BellAlertIcon className="size-6 text-black/60" />
-              </button>
+              </button> */}
 
               {/* Avatar */}
               <div className="relative">
