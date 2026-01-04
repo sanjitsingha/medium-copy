@@ -6,8 +6,10 @@ import { storage } from "@/lib/appwrite";
 import { IoIosShareAlt } from "react-icons/io";
 import { IoBookmarkOutline } from "react-icons/io5";
 import { IoBookmark } from "react-icons/io5";
+import { databases } from "@/lib/appwrite";
+import { useEffect, useState } from "react";
+import { useAuthContext } from "@/context/AuthContext";
 const BUCKET_ID = "article-images";
-
 export default function StoriesCardHorizontal({
   article,
   isLiked,
@@ -15,11 +17,17 @@ export default function StoriesCardHorizontal({
   onLike,
   onBookmark,
 }) {
+  const { user } = useAuthContext();
+
+
   const getImageUrl = (fileId) =>
     fileId ? storage.getFileView(BUCKET_ID, fileId).toString() : null;
 
   const imageUrl = getImageUrl(article.featuredImage);
-  const avatarUrl = getImageUrl(article.authorAvatar);
+  const avatarUrl =
+    user?.$id === article.authorId && user?.prefs?.avatar
+      ? getImageUrl(user.prefs.avatar)
+      : getImageUrl(article.authorAvatar); // fallback for others
 
   return (
     <div className="border-b border-gray-200 pb-8 mb-8">
@@ -28,7 +36,8 @@ export default function StoriesCardHorizontal({
         <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-200">
           {avatarUrl && <img src={avatarUrl} alt="" />}
         </div>
-        <p>{article.authorName}</p>
+        <p>{user?.$id === article.authorId ? user.name : article.authorName}</p>
+
         <span>·</span>
         <p>{new Date(article.$updatedAt).toDateString()}</p>
       </div>

@@ -30,6 +30,8 @@ export default function ReadArticlePage() {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [bookmarkDocId, setBookmarkDocId] = useState(null);
 
+  const isAuthor = user?.$id === article?.authorId;
+
   const getAvatarUrl = (fileId) => {
     if (!fileId) return "/default-avatar.png";
     return storage.getFileView(BUCKET_ID, fileId).toString();
@@ -69,12 +71,11 @@ export default function ReadArticlePage() {
     const viewed = sessionStorage.getItem(`viewed_${article.$id}`);
     if (viewed) return;
 
-    databases.updateDocument(
-      DATABASE_ID,
-      ARTICLES_COLLECTION,
-      article.$id,
-      { views: (article.views || 0) + 1 }
-    ).catch(console.error);
+    databases
+      .updateDocument(DATABASE_ID, ARTICLES_COLLECTION, article.$id, {
+        views: (article.views || 0) + 1,
+      })
+      .catch(console.error);
 
     sessionStorage.setItem(`viewed_${article.$id}`, "true");
   }, [article?.$id]);
@@ -87,12 +88,11 @@ export default function ReadArticlePage() {
     if (read) return;
 
     readTimerRef.current = setTimeout(() => {
-      databases.updateDocument(
-        DATABASE_ID,
-        ARTICLES_COLLECTION,
-        article.$id,
-        { reads: (article.reads || 0) + 1 }
-      ).catch(console.error);
+      databases
+        .updateDocument(DATABASE_ID, ARTICLES_COLLECTION, article.$id, {
+          reads: (article.reads || 0) + 1,
+        })
+        .catch(console.error);
 
       sessionStorage.setItem(`read_${article.$id}`, "true");
     }, 30000);
@@ -138,23 +138,18 @@ export default function ReadArticlePage() {
   const toggleLike = async () => {
     if (!user) return alert("Please login to like");
 
+    // optimistic update
+    if (isLiked) {
+      setIsLiked(false);
+      setLikesCount((v) => Math.max(v - 1, 0));
+    } else {
+      setIsLiked(true);
+      setLikesCount((v) => v + 1);
+    }
+
     try {
       if (isLiked) {
-        await databases.deleteDocument(
-          DATABASE_ID,
-          "article_likes",
-          likeDocId
-        );
-
-        await databases.updateDocument(
-          DATABASE_ID,
-          ARTICLES_COLLECTION,
-          article.$id,
-          { likes: Math.max(likesCount - 1, 0) }
-        );
-
-        setLikesCount((v) => Math.max(v - 1, 0));
-        setIsLiked(false);
+        await databases.deleteDocument(DATABASE_ID, "article_likes", likeDocId);
         setLikeDocId(null);
       } else {
         const doc = await databases.createDocument(
@@ -167,26 +162,19 @@ export default function ReadArticlePage() {
             Permission.delete(Role.user(user.$id)),
           ]
         );
-
-        await databases.updateDocument(
-          DATABASE_ID,
-          ARTICLES_COLLECTION,
-          article.$id,
-          { likes: likesCount + 1 }
-        );
-
-        setLikesCount((v) => v + 1);
-        setIsLiked(true);
         setLikeDocId(doc.$id);
       }
     } catch (err) {
-      console.error("Like toggle failed:", err);
+      console.error(err);
+      // rollback if needed (optional)
     }
   };
 
   /* ---------------- BOOKMARK TOGGLE ---------------- */
   const toggleBookmark = async () => {
     if (!user) return alert("Please login to bookmark");
+
+    setIsBookmarked((v) => !v); // instant UI
 
     try {
       if (isBookmarked) {
@@ -195,7 +183,6 @@ export default function ReadArticlePage() {
           "article_bookmarks",
           bookmarkDocId
         );
-        setIsBookmarked(false);
         setBookmarkDocId(null);
       } else {
         const doc = await databases.createDocument(
@@ -208,12 +195,27 @@ export default function ReadArticlePage() {
             Permission.delete(Role.user(user.$id)),
           ]
         );
-
-        setIsBookmarked(true);
         setBookmarkDocId(doc.$id);
       }
     } catch (err) {
-      console.error("Bookmark toggle failed:", err);
+      console.error(err);
+    }
+  };
+
+  /* ---------------- SHARE ---------------- */
+
+  const handleShare = async () => {
+    const url = window.location.href;
+
+    if (navigator.share) {
+      await navigator.share({
+        title: article.title,
+        text: article.title,
+        url,
+      });
+    } else {
+      await navigator.clipboard.writeText(url);
+      alert("Link copied to clipboard");
     }
   };
 
@@ -239,25 +241,39 @@ export default function ReadArticlePage() {
       <div className="w-full flex border-l-6 pl-4 border-green-600 my-8 justify-between">
         <div className="text-gray-500 text-xs md:text-sm flex gap-1 md:gap-4 items-center">
           <img
-            src={getAvatarUrl(article.authorAvatar)}
+            src={
+              isAuthor && user?.prefs?.avatar
+                ? getAvatarUrl(user.prefs.avatar)
+                : getAvatarUrl(article.authorAvatar)
+            }
             className="w-6 h-6 rounded-full object-cover"
-            alt={article.authorName}
+            alt="Author"
           />
-          <p>{article.authorName || "Admin"}</p>
+
+          <p>{isAuthor ? user.name : article.authorName || "Admin"}</p>
+
           <p>{new Date(article.$createdAt).toDateString()}</p>
           <p>{article.readTime} min read</p>
         </div>
 
         <button onClick={toggleBookmark}>
-          {isBookmarked ? <GoBookmarkFill size={22} /> : <GoBookmark size={22} />}
+          {isBookmarked ? (
+            <GoBookmarkFill size={22} />
+          ) : (
+            <GoBookmark size={22} />
+          )}
         </button>
       </div>
 
       {imageUrl && (
-        <img src={imageUrl} className="w-full my-8 rounded" alt={article.title} />
+        <img
+          src={imageUrl}
+          className="w-full my-8 rounded"
+          alt={article.title}
+        />
       )}
 
-      <div className="prose prose-lg max-w-none text-[14px] md:text-[20px]">
+      <div className="prose prose-lg max-w-none text-[14px] md:text-[20px] leading-relaxed">
         {HTMLReactParser(article.content)}
       </div>
 
@@ -265,9 +281,9 @@ export default function ReadArticlePage() {
       <div className="mt-10 flex justify-end gap-8">
         <div className="flex items-center gap-2">
           <button
-            onClick={toggleLike}
-            className={`h-8 w-8 rounded-full flex items-center justify-center ${
-              isLiked ? "bg-green-600 text-white" : "bg-gray-300"
+            onClick={toggleBookmark}
+            className={`p-2 rounded-full transition ${
+              isBookmarked ? "bg-green-100" : "hover:bg-gray-200"
             }`}
           >
             <IoBulbOutline size={18} />
@@ -275,7 +291,10 @@ export default function ReadArticlePage() {
           <span className="text-sm text-gray-500">{likesCount}</span>
         </div>
 
-        <button className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
+        <button
+          onClick={handleShare}
+          className="h-8 w-8 rounded-full bg-gray-300 hover:bg-gray-400 flex items-center justify-center transition"
+        >
           <IoIosShareAlt size={18} />
         </button>
       </div>
