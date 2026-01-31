@@ -230,9 +230,9 @@ export default function ReadArticlePage() {
 
   return (
     <div className="max-w-[800px] p-4 md:p-0 mx-auto pt-2">
-      <div className="bg-gray-200 w-full h-[120px] mt-10 rounded-sm flex items-center justify-center">
+      {/* <div className="bg-gray-200 w-full h-[120px] mt-10 rounded-sm flex items-center justify-center">
         <p className="text-gray-500">Advertisment Area</p>
-      </div>
+      </div> */}
 
       <h1 className=" text-[28px] md:text-[42px] font-serif pt-6 leading-tight">
         {article.title}
@@ -309,9 +309,7 @@ export default function ReadArticlePage() {
         </button>
       </div>
 
-      <div className="bg-gray-200 w-full h-[120px] mt-10 rounded-sm flex items-center justify-center">
-        <p className="text-gray-500 text-sm">Advertisment Area</p>
-      </div>
+   
 
       <div className="w-full py-10">
         <p className="text-[22px] font-semibold tracking-tighter">
