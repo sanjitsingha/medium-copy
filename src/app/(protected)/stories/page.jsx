@@ -14,8 +14,9 @@ const page = () => {
   const [drafts, setDrafts] = useState([]);
   const [publishedArticles, setPublishedArticles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [deleteDraftModal, setDeleteDraftModal] = useState(false);
   const [selectedDraftId, setSelectedDraftId] = useState(null);
+  const [deleteDraftModal, setDeleteDraftModal] = useState(false);
+    const [deletePublishedModal, setDeletePublishedModal] = useState(false);
 
   useEffect(() => {
     if (!user?.$id) return;
@@ -85,6 +86,31 @@ const page = () => {
       alert("Failed to delete draft");
     }
   };
+
+  const handleDeletePublished = async () => {
+    if (!selectedDraftId) return;
+
+    try {
+      await databases.deleteDocument(
+        "693d3d220017a846a1c0", // DATABASE ID
+        "drafts", // COLLECTION ID
+        selectedDraftId
+      );
+
+      // Update UI instantly (no reload)
+      setDrafts((prev) =>
+        prev.filter((draft) => draft.$id !== selectedDraftId)
+      );
+
+      // Cleanup
+      setDeleteDraftModal(false);
+      setSelectedDraftId(null);
+    } catch (error) {
+      console.error("Delete draft error:", error);
+      alert("Failed to delete draft");
+    }
+  };
+
 
   return (
     <div className="w-full">
@@ -172,11 +198,11 @@ const page = () => {
                 <p className="text-sm text-gray-500">Loading Articles</p>
               )}
 
-              {!loading && drafts.length === 0 && (
+              {/* {!loading && drafts.length === 0 && (
                 <p className="text-sm text-gray-500">
                   You don’t have any drafts yet.
                 </p>
-              )}
+              )} */}
 
               <div className="flex flex-col divide-y divide-gray-200">
                 {publishedArticles.map((article) => (
@@ -224,6 +250,27 @@ const page = () => {
         <div className="flex gap-2 mt-4 justify-end">
           <button
             onClick={() => setDeleteDraftModal(false)}
+            className="px-4 py-1 rounded"
+          >
+            Cancel
+          </button>
+          <button
+            className="px-4 py-1 bg-red-600 rounded text-white "
+            onClick={handleDeleteDraft}
+          >
+            Delete
+          </button>
+        </div>
+      </Modal>
+            <Modal open={deletePublishedModal} onOpenChange={setDeletePublishedModal}>
+        <h2 className="text-[16px] mb-4">Delete Draft</h2>
+        <p className="text-[14px] text-black/60">
+          Clicking delete will permanently remove this story. This action cannot
+          be undone.
+        </p>
+        <div className="flex gap-2 mt-4 justify-end">
+          <button
+            onClick={() => setDeletePublishedModal(false)}
             className="px-4 py-1 rounded"
           >
             Cancel

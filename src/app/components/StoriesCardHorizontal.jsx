@@ -1,5 +1,6 @@
 "use client";
-
+import { PiSparkle } from "react-icons/pi";
+import { PiSparkleFill } from "react-icons/pi";
 import Link from "next/link";
 import { RiFireLine } from "react-icons/ri";
 import { storage } from "@/lib/appwrite";
@@ -18,7 +19,6 @@ export default function StoriesCardHorizontal({
   onBookmark,
 }) {
   const { user } = useAuthContext();
-
 
   const getImageUrl = (fileId) =>
     fileId ? storage.getFileView(BUCKET_ID, fileId).toString() : null;
@@ -74,20 +74,22 @@ export default function StoriesCardHorizontal({
 
       {/* Actions */}
       <div className="flex gap-8 mt-2 text-gray-500">
-        <button
-          onClick={() => onLike(article.$id)}
-          className={
-            isLiked
-              ? "bg-orange-400 rounded-full p-1 text-white cursor-pointer"
-              : "cursor-pointer"
-          }
-        >
-          <RiFireLine size={22} />
-        </button>
+       <button
+  onClick={() => onLike(article.$id)} // later rename to onSpark
+  className="cursor-pointer transition-transform active:scale-95"
+  title="Spark this post"
+>
+  {isLiked ? (
+    <PiSparkleFill size={20} className="text-yellow-400 drop-shadow-[0_0_6px_rgba(250,204,21,0.6)]" />
+  ) : (
+    <PiSparkle
+      size={20}
+      className="text-gray-500 hover:text-yellow-400 transition-colors"
+    />
+  )}
+</button>
 
-        <button>
-          <IoIosShareAlt size={16} />
-        </button>
+       
 
         <button
           onClick={() => onBookmark(article.$id)}
@@ -96,7 +98,7 @@ export default function StoriesCardHorizontal({
           {isBookmarked ? (
             <IoBookmark size={18} className="text-green-700" />
           ) : (
-            <IoBookmarkOutline size={18} className="text-gray-500" />
+            <IoBookmarkOutline size={18} className="text-gray-500 hover:text-green-700" />
           )}
         </button>
       </div>

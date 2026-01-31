@@ -6,10 +6,11 @@ import { databases, storage, ID } from "@/lib/appwrite";
 import { Query, Permission, Role } from "appwrite";
 import HTMLReactParser from "html-react-parser";
 import { GoBookmark, GoBookmarkFill } from "react-icons/go";
-import { IoBulbOutline } from "react-icons/io5";
+import { IoBookmark, IoBookmarkOutline, IoBulbOutline } from "react-icons/io5";
 import { IoIosShareAlt } from "react-icons/io";
 import { useAuthContext } from "@/context/AuthContext";
 import RelatedArticles from "@/app/components/RelatedArticles";
+import { PiSparkle, PiSparkleFill } from "react-icons/pi";
 
 const DATABASE_ID = "693d3d220017a846a1c0";
 const ARTICLES_COLLECTION = "articles";
@@ -46,7 +47,7 @@ export default function ReadArticlePage() {
         const res = await databases.listDocuments(
           DATABASE_ID,
           ARTICLES_COLLECTION,
-          [Query.equal("slug", [slug])]
+          [Query.equal("slug", [slug])],
         );
 
         if (!res.documents.length) return;
@@ -160,7 +161,7 @@ export default function ReadArticlePage() {
           [
             Permission.read(Role.user(user.$id)),
             Permission.delete(Role.user(user.$id)),
-          ]
+          ],
         );
         setLikeDocId(doc.$id);
       }
@@ -181,7 +182,7 @@ export default function ReadArticlePage() {
         await databases.deleteDocument(
           DATABASE_ID,
           "article_bookmarks",
-          bookmarkDocId
+          bookmarkDocId,
         );
         setBookmarkDocId(null);
       } else {
@@ -193,7 +194,7 @@ export default function ReadArticlePage() {
           [
             Permission.read(Role.user(user.$id)),
             Permission.delete(Role.user(user.$id)),
-          ]
+          ],
         );
         setBookmarkDocId(doc.$id);
       }
@@ -258,9 +259,12 @@ export default function ReadArticlePage() {
 
         <button onClick={toggleBookmark}>
           {isBookmarked ? (
-            <GoBookmarkFill size={22} />
+            <IoBookmark size={18} className="text-green-700" />
           ) : (
-            <GoBookmark size={22} />
+            <IoBookmarkOutline
+              size={18}
+              className="text-gray-500 hover:text-green-700"
+            />
           )}
         </button>
       </div>
@@ -280,13 +284,19 @@ export default function ReadArticlePage() {
       {/* LIKE / SHARE */}
       <div className="mt-10 flex justify-end gap-8">
         <div className="flex items-center gap-2">
-          <button
-            onClick={toggleBookmark}
-            className={`p-2 rounded-full transition ${
-              isBookmarked ? "bg-green-100" : "hover:bg-gray-200"
-            }`}
+           <button
+            onClick={() => toggleLike(article.$id)} // later rename to onSpark
+            className="cursor-pointer transition-transform active:scale-95"
+            title="Spark this post"
           >
-            <IoBulbOutline size={18} />
+            {isLiked ? (
+              <PiSparkleFill size={20} className="text-yellow-400 drop-shadow-[0_0_6px_rgba(250,204,21,0.6)]" />
+            ) : (
+              <PiSparkle
+                size={20}
+                className="text-gray-500 hover:text-yellow-400 transition-colors"
+              />
+            )}
           </button>
           <span className="text-sm text-gray-500">{likesCount}</span>
         </div>
