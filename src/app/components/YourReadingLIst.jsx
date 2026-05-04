@@ -28,7 +28,8 @@ const YourReadingLIst = () => {
             created_at,
             users!fk_author (
               id,
-              name
+              name,
+              avatar
             )
           )
         `)
@@ -82,23 +83,23 @@ const YourReadingLIst = () => {
         <p className='font-creato font-bold text-[16px]'>Saved Stories</p>
         <Link href="/library" className='text-sm text-gray-500 hover:text-black'>view all</Link>
       </div>
-      
-      <div className='flex flex-col gap-4'>
+
+      <div className='flex flex-col gap-6'>
         {bookmarks.map((bookmark) => (
           <div key={bookmark.id} className='group'>
-            <div className='flex gap-2 items-center mb-1'>
+            <div className='flex gap-2 items-center mb-2'>
               <div className='w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center text-[10px] text-gray-500 font-medium overflow-hidden'>
-                {bookmark.articles?.users?.name?.[0]?.toUpperCase() || 'U'}
+                <Image src={bookmark.articles?.users?.avatar} alt='avatar' width={300} height={300} className='object-cover w-full h-full' />
               </div>
               <p className='text-[13px] font-medium text-gray-600'>{bookmark.articles?.users?.name || 'Unknown'}</p>
             </div>
-            
+
             <Link href={`/read/${bookmark.articles?.slug}`}>
               <p className='text-[15px] font-bold font-creato leading-tight text-gray-900 group-hover:underline decoration-gray-400'>
                 {bookmark.articles?.title}
               </p>
             </Link>
-            
+
             <p className='text-[12px] text-gray-500 mt-1.5'>
               {new Date(bookmark.articles?.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               <span className='mx-1'>·</span>

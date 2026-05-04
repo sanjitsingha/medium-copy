@@ -21,7 +21,7 @@ const Page = () => {
   const router = useRouter();
   const tabFromUrl = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState(tabFromUrl || "your-list");
-  
+
   const { user } = useAuthContext();
   const [bookmarks, setBookmarks] = useState([]);
   const [history, setHistory] = useState([]);
@@ -43,80 +43,46 @@ const Page = () => {
 
   // 🔹 Fetch Data
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
-    const fetchData = async () => {
+    const fetchBookmarks = async () => {
       setLoading(true);
 
       // Fetch Bookmarks
-      const { data: bookmarkData, error: bookmarkError } = await supabase
+      const { data, error } = await supabase
         .from("bookmarks")
         .select(`
           id,
-          article_id,
           articles (
             id,
             title,
             slug,
-            subtitle,
-            author_id,
-            cover_image,
             created_at,
             users!fk_author (
               id,
-              name
+              name,
+              avatar
             )
           )
         `)
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (bookmarkError) console.error("Error fetching bookmarks:", bookmarkError);
-      else setBookmarks(bookmarkData || []);
-
-      // Fetch History (Views)
-      const { data: historyData, error: historyError } = await supabase
-        .from("views")
-        .select(`
-          id,
-          article_id,
-          created_at,
-          articles (
-            id,
-            title,
-            slug,
-            subtitle,
-            author_id,
-            cover_image,
-            created_at,
-            users!fk_author (
-              id,
-              name
-            )
-          )
-        `)
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (historyError) console.error("Error fetching history:", historyError);
-      else {
-        // Filter unique articles for history to show a cleaner list
-        const uniqueHistory = [];
-        const seenArticles = new Set();
-        (historyData || []).forEach(item => {
-          if (item.articles && !seenArticles.has(item.articles.id)) {
-            uniqueHistory.push(item);
-            seenArticles.add(item.articles.id);
-          }
-        });
-        setHistory(uniqueHistory);
+      if (!error && data) {
+        setBookmarks(data);
       }
-
-      setLoading(false);
+      setLoading(false)
     };
+    fetchBookmarks();
 
-    fetchData();
+
+
+
   }, [user]);
+
 
   useEffect(() => {
     const handleClickOutside = () => setActiveMenu(null);
@@ -152,7 +118,7 @@ const Page = () => {
   return (
     <div className="w-full bg-white min-h-screen pb-20">
       <div className="max-w-3xl mx-auto px-4 md:px-6 pt-16 font-creato">
-        
+
         {/* Header Section */}
         <div className="w-full flex justify-between items-end mb-12">
           <h1 className="text-4xl font-semibold tracking-tight text-black">Library</h1>
@@ -165,9 +131,8 @@ const Page = () => {
               setActiveTab("your-list");
               router.push("/library?tab=your-list");
             }}
-            className={`pb-4 text-[15px] font-medium transition-colors cursor-pointer relative ${
-              activeTab === "your-list" ? "text-black" : "text-gray-500 hover:text-black"
-            }`}
+            className={`pb-4 text-[15px] font-medium transition-colors cursor-pointer relative ${activeTab === "your-list" ? "text-black" : "text-gray-500 hover:text-black"
+              }`}
           >
             Your List {bookmarks.length > 0 && <span className="ml-1 text-gray-400 font-normal">{bookmarks.length}</span>}
             {activeTab === "your-list" && (
@@ -180,9 +145,8 @@ const Page = () => {
               setActiveTab("watch-history");
               router.push("/library?tab=watch-history");
             }}
-            className={`pb-4 text-[15px] font-medium transition-colors cursor-pointer relative ${
-              activeTab === "watch-history" ? "text-black" : "text-gray-500 hover:text-black"
-            }`}
+            className={`pb-4 text-[15px] font-medium transition-colors cursor-pointer relative ${activeTab === "watch-history" ? "text-black" : "text-gray-500 hover:text-black"
+              }`}
           >
             Watch History {history.length > 0 && <span className="ml-1 text-gray-400 font-normal">{history.length}</span>}
             {activeTab === "watch-history" && (
@@ -218,14 +182,33 @@ const Page = () => {
                           </p>
                         )}
                       </Link>
-                      <div className="flex items-center text-[13px] text-gray-500 mt-2 gap-2">
-                        <span>{item.articles?.users?.name}</span>
+                      <div className="flex items-center text-[13px] text-gray-500 mt-2 gap-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-5 h-5 bg-gray-100 rounded-full overflow-hidden flex items-center justify-center border border-gray-100">
+                            {item.articles?.users?.avatar ? (
+                              <Image
+                                src={getImageUrl(item.articles.users.avatar)}
+                                alt={item.articles.users.name}
+                                width={20}
+                                height={20}
+                                className="object-cover w-full h-full"
+                              />
+                            ) : (
+                              <div className="text-[10px] text-gray-400 font-medium">
+                                {item.articles?.users?.name?.[0]?.toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                          <span className="font-medium text-gray-700">{item.articles?.users?.name}</span>
+                        </div>
                         <span>•</span>
                         <span>{new Date(item.articles?.created_at).toLocaleDateString("en-IN", {
                           day: "numeric",
                           month: "short",
                           year: "numeric",
                         })}</span>
+                        <span>•</span>
+                        <span>{Math.max(1, Math.ceil((item.articles?.content?.length || 1000) / 1000))} min read</span>
                       </div>
                     </div>
 
@@ -297,14 +280,33 @@ const Page = () => {
                           </p>
                         )}
                       </Link>
-                      <div className="flex items-center text-[13px] text-gray-500 mt-2 gap-2">
-                        <span>{item.articles?.users?.name}</span>
+                      <div className="flex items-center text-[13px] text-gray-500 mt-2 gap-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-5 h-5 bg-gray-100 rounded-full overflow-hidden flex items-center justify-center border border-gray-100">
+                            {item.articles?.users?.avatar ? (
+                              <Image
+                                src={getImageUrl(item.articles.users.avatar)}
+                                alt={item.articles.users.name}
+                                width={20}
+                                height={20}
+                                className="object-cover w-full h-full"
+                              />
+                            ) : (
+                              <div className="text-[10px] text-gray-400 font-medium">
+                                {item.articles?.users?.name?.[0]?.toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                          <span className="font-medium text-gray-700">{item.articles?.users?.name}</span>
+                        </div>
                         <span>•</span>
                         <span>Read on {new Date(item.created_at).toLocaleDateString("en-IN", {
                           day: "numeric",
                           month: "short",
                           year: "numeric",
                         })}</span>
+                        <span>•</span>
+                        <span>{Math.max(1, Math.ceil((item.articles?.content?.length || 1000) / 1000))} min read</span>
                       </div>
                     </div>
 
@@ -354,4 +356,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default Page;

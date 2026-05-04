@@ -82,6 +82,65 @@ const page = () => {
     fetchArticles();
   }, [user]);
 
+  const handleDelete = async (id, status) => {
+    if (!window.confirm("Are you sure you want to delete this story? This action cannot be undone.")) return;
+
+    try {
+      const { error } = await supabase.from("articles").delete().eq("id", id);
+      if (error) throw error;
+
+      if (status === "draft") {
+        setDrafts((prev) => prev.filter((item) => item.id !== id));
+      } else {
+        setPublishedArticles((prev) => prev.filter((item) => item.id !== id));
+      }
+    } catch (err) {
+      console.error("Error deleting article:", err);
+      alert("Failed to delete the story. Please try again.");
+    }
+  };
+
+  const handleUnpublish = async (article) => {
+    try {
+      const { error } = await supabase
+        .from("articles")
+        .update({ status: "draft" })
+        .eq("id", article.id);
+
+      if (error) throw error;
+
+      setPublishedArticles((prev) => prev.filter((item) => item.id !== article.id));
+      setDrafts((prev) => [
+        { ...article, status: "draft" },
+        ...prev
+      ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
+
+      setActiveMenu(null);
+    } catch (err) {
+      console.error("Error unpublishing article:", err);
+      alert("Failed to unpublish the story.");
+    }
+  };
+
+  const handleShare = async (article) => {
+    const url = `${window.location.origin}/read/${article.slug || article.id}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: article.title,
+          text: article.subtitle || article.title,
+          url,
+        });
+      } else {
+        await navigator.clipboard.writeText(url);
+        alert("Link copied to clipboard!");
+      }
+    } catch (err) {
+      console.error("Error sharing:", err);
+    }
+    setActiveMenu(null);
+  };
+
 
 
 
@@ -203,8 +262,25 @@ const page = () => {
                             <span>Continue writing</span>
                           </Link>
 
+                          <Link
+                            href={`/stats/${draft.id}`}
+                            className="flex px-4 py-2.5 text-[14px] text-gray-700 hover:bg-gray-50 transition-colors items-center gap-3"
+                            onClick={() => setActiveMenu(null)}
+                          >
+                            <ArrowTrendingUpIcon className="w-4 h-4 text-gray-400" />
+                            <span>View stats</span>
+                          </Link>
+
                           <button
-                            onClick={() => typeof handleDelete === 'function' && handleDelete(draft.id)}
+                            onClick={() => handleShare(draft)}
+                            className="flex px-4 py-2.5 text-[14px] text-gray-700 hover:bg-gray-50 transition-colors items-center gap-3 w-full text-left"
+                          >
+                            <PiShareFatThin className="w-4 h-4 text-gray-400" />
+                            <span>Share</span>
+                          </button>
+
+                          <button
+                            onClick={() => handleDelete(draft.id, "draft")}
                             className="flex px-4 py-2.5 text-[14px] text-red-600 hover:bg-red-50 transition-colors items-center gap-3 w-full text-left"
                           >
                             <TrashIcon className="w-4 h-4 text-red-500" />
@@ -251,15 +327,15 @@ const page = () => {
                       <div className="hidden sm:block shrink-0">
                         <Image
                           src={getImageUrl(article.cover_image)}
-                          width={112}
-                          height={112}
+                          width={200}
+                          height={200}
                           alt={article.title}
-                          className="object-cover rounded w-28 h-28 border border-gray-100"
+                          className="object-cover rounded w-[130px] h-[80px] border border-gray-100"
                         />
                       </div>
                     )}
 
-                    <div className="relative shrink-0 ml-2">
+                    <div className="relative my-auto shrink-0 ml-2">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -271,9 +347,9 @@ const page = () => {
                       </button>
 
                       {activeMenu === article.id && (
-                        <div className="absolute right-0 top-8 w-48 bg-white border border-gray-100 shadow-lg rounded-xl overflow-hidden z-50 py-1">
+                        <div className="absolute right-0 top-8 w-48 bg-gray-100 border border-gray-200 shadow-2xl rounded-xl overflow-hidden z-50 py-1">
                           <Link
-                            href={`/read/${article.slug || article.id}`}
+                            href={`/stats/${article.id}`}
                             className="flex px-4 py-2.5 text-[14px] text-gray-700 hover:bg-gray-50 transition-colors items-center gap-3"
                             onClick={() => setActiveMenu(null)}
                           >
@@ -281,32 +357,29 @@ const page = () => {
                             <span>View stats</span>
                           </Link>
 
-                          <Link
-                            href={`/read/${article.slug || article.id}`}
-                            className="flex px-4 py-2.5 text-[14px] text-gray-700 hover:bg-gray-50 transition-colors items-center gap-3 border-b border-gray-100 pb-3 mb-1"
-                            onClick={() => setActiveMenu(null)}
+                          <button
+                            onClick={() => handleShare(article)}
+                            className="flex px-4 py-2.5 text-[14px] text-gray-700 hover:bg-gray-50 transition-colors items-center gap-3 w-full text-left border-b border-gray-100 pb-3 mb-1"
                           >
                             <PiShareFatThin className="w-4 h-4 text-gray-400" />
                             <span>Share</span>
-                          </Link>
+                          </button>
 
-                          <Link
-                            href={`/read/${article.slug || article.id}`}
-                            className="flex px-4 py-2.5 text-[14px] text-gray-700 hover:bg-gray-50 transition-colors items-center gap-3"
-                            onClick={() => setActiveMenu(null)}
+                          <button
+                            onClick={() => handleUnpublish(article)}
+                            className="flex px-4 py-2.5 text-[14px] text-gray-700 hover:bg-gray-50 transition-colors items-center gap-3 w-full text-left"
                           >
                             <ArrowUturnLeftIcon className="w-4 h-4 text-gray-400" />
                             <span>Unpublish</span>
-                          </Link>
+                          </button>
 
-                          <Link
-                            href={`/read/${article.slug || article.id}`}
+                          <button
+                            onClick={() => handleDelete(article.id, "published")}
                             className="flex px-4 py-2.5 text-[14px] text-red-600 hover:bg-red-50 transition-colors items-center gap-3 w-full text-left"
-                            onClick={() => setActiveMenu(null)}
                           >
                             <TrashIcon className="w-4 h-4 text-red-500" />
                             <span>Delete story</span>
-                          </Link>
+                          </button>
                         </div>
                       )}
                     </div>
