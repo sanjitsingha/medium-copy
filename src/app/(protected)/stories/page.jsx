@@ -83,8 +83,6 @@ const page = () => {
   }, [user]);
 
 
-  // console.log(publishedArticles)
-
 
 
 
@@ -97,14 +95,7 @@ const page = () => {
         {/* Header Section */}
         <div className="w-full flex justify-between items-end mb-12 ">
           <h1 className="text-4xl font-semibold tracking-tight text-black">Your stories</h1>
-          {/* <div className="flex items-center gap-4 mb-1">
-            <Link
-              href="/write"
-              className="bg-black text-white px-5 py-2 rounded-full text-[14px] font-medium hover:bg-gray-800 transition-colors"
-            >
-              Write a story
-            </Link>
-          </div> */}
+
         </div>
 
         {/* Tabs */}
