@@ -23,7 +23,7 @@ const RecomendedTopics = () => {
   return (
     <div className="w-full">
       <p className="font-semibold mb-4 hidden md:block text-black font-creato">
-        Your Reading List
+        Explore Topics
       </p>
 
       <div className="flex gap-3 overflow-x-auto no-scrollbar md:flex-wrap md:overflow-visible">

@@ -2,15 +2,11 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { databases } from "@/lib/appwrite";
-import { Query } from "appwrite";
+import { supabase } from "@/lib/supabaseClient";
 import { useAuthContext } from "@/context/AuthContext";
-import useArticleActions from "@/hooks/useUserActions";
+import useUserActions from "@/hooks/useUserActions";
 import ShimmerArticle from "@/app/components/ShimmerArticle";
 import StoriesCardHorizontal from "@/app/components/StoriesCardHorizontal";
-
-const DB_ID = "693d3d220017a846a1c0";
-const ARTICLES_COLLECTION = "articles";
 
 const CATEGORIES = [
   "Technology",
@@ -27,12 +23,24 @@ export default function Page() {
 
   const { user } = useAuthContext();
   const { likes, bookmarks, toggleLike, toggleBookmark } =
-    useArticleActions(user?.$id);
+    useUserActions(user);
 
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeCategories, setActiveCategories] = useState([]);
-  const [isReady, setIsReady] = useState(false); // 👈 important
+  const [isReady, setIsReady] = useState(false);
+
+  /* ================= IMAGE HELPER ================= */
+  const getImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith("http")) return path;
+
+    const { data } = supabase.storage
+      .from("article-images")
+      .getPublicUrl(path);
+
+    return data.publicUrl;
+  };
 
   /* ================= READ FROM URL ================= */
   useEffect(() => {
@@ -42,38 +50,50 @@ export default function Page() {
       setActiveCategories([categoryFromUrl]);
     }
 
-    setIsReady(true); // 👈 allow fetch after this
+    setIsReady(true);
   }, [searchParams]);
 
   /* ================= FETCH ARTICLES ================= */
   useEffect(() => {
-    if (!isReady) return; // 👈 prevent early fetch
+    if (!isReady) return;
 
     const fetchArticles = async () => {
       setLoading(true);
 
       try {
-        let queries = [
-          Query.equal("status", ["published"]),
-          Query.orderDesc("$updatedAt"),
-          Query.limit(20),
-        ];
+        let query = supabase
+          .from("articles")
+          .select(`
+            *,
+            users (
+              id,
+              name,
+              avatar
+            )
+          `)
+          .eq("status", "published")
+          .order("updated_at", { ascending: false })
+          .limit(20);
 
-        if (activeCategories.length === 1) {
-          queries.push(Query.contains("categories", activeCategories[0]));
+        if (activeCategories.length > 0) {
+          // Filter articles where categories array contains ANY of the activeCategories
+          query = query.overlaps("categories", activeCategories);
         }
 
-        if (activeCategories.length > 1) {
-          queries.push(Query.contains("categories", activeCategories));
-        }
+        const { data, error } = await query;
 
-        const res = await databases.listDocuments(
-          DB_ID,
-          ARTICLES_COLLECTION,
-          queries
-        );
+        if (error) throw error;
 
-        setArticles(res.documents);
+        const formatted = (data || []).map((article) => ({
+          ...article,
+          author_name: article.users?.name || "Unknown",
+          author_avatar: article.users?.avatar
+            ? getImageUrl(article.users.avatar)
+            : null,
+          thumbnail: getImageUrl(article.cover_image),
+        }));
+
+        setArticles(formatted);
       } catch (err) {
         console.error("Explore fetch error:", err);
       } finally {
@@ -107,8 +127,8 @@ export default function Page() {
               key={cat}
               onClick={() => toggleCategory(cat)}
               className={`px-4 py-1.5 rounded-full text-sm border transition ${active
-                  ? "bg-black text-white border-black"
-                  : "bg-white text-gray-700 border-gray-300 hover:border-black"
+                ? "bg-black text-white border-black"
+                : "bg-white text-gray-700 border-gray-300 hover:border-black"
                 }`}
             >
               {cat}
@@ -131,10 +151,10 @@ export default function Page() {
       {!loading &&
         articles.map((article) => (
           <StoriesCardHorizontal
-            key={article.$id}
+            key={article.id}
             article={article}
-            isLiked={likes.has(article.$id)}
-            isBookmarked={bookmarks.has(article.$id)}
+            isLiked={likes.has(article.id)}
+            isBookmarked={bookmarks.has(article.id)}
             onLike={toggleLike}
             onBookmark={toggleBookmark}
           />

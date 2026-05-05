@@ -89,7 +89,11 @@ const YourReadingLIst = () => {
           <div key={bookmark.id} className='group'>
             <div className='flex gap-2 items-center mb-2'>
               <div className='w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center text-[10px] text-gray-500 font-medium overflow-hidden'>
-                <Image src={bookmark.articles?.users?.avatar} alt='avatar' width={300} height={300} className='object-cover w-full h-full' />
+                {bookmark.articles?.users?.avatar ? (
+                  <Image src={bookmark.articles.users.avatar} alt='avatar' width={300} height={300} className='object-cover w-full h-full' />
+                ) : (
+                  bookmark.articles?.users?.name?.charAt(0).toUpperCase() || 'U'
+                )}
               </div>
               <p className='text-[13px] font-medium text-gray-600'>{bookmark.articles?.users?.name || 'Unknown'}</p>
             </div>

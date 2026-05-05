@@ -22,6 +22,18 @@ const Page = () => {
   const { likes, bookmarks, toggleLike, toggleBookmark } =
     useUserActions(user);
 
+  /* ================= IMAGE HELPER ================= */
+  const getImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith("http")) return path;
+
+    const { data } = supabase.storage
+      .from("article-images")
+      .getPublicUrl(path);
+
+    return data.publicUrl;
+  };
+
   useEffect(() => {
     if (showSearchUI) {
       setArticles([]);
@@ -48,9 +60,18 @@ const Page = () => {
 
         if (error) throw error;
 
-        const filtered = data.filter((article) =>
-          article.title?.toLowerCase().includes(query.toLowerCase())
-        );
+        const filtered = (data || [])
+          .filter((article) =>
+            article.title?.toLowerCase().includes(query.toLowerCase())
+          )
+          .map((article) => ({
+            ...article,
+            author_name: article.users?.name || "Unknown",
+            author_avatar: article.users?.avatar
+              ? getImageUrl(article.users.avatar)
+              : null,
+            thumbnail: getImageUrl(article.cover_image),
+          }));
 
         setArticles(filtered);
       } catch (error) {
@@ -62,6 +83,7 @@ const Page = () => {
 
     fetchSearchResults();
   }, [query, showSearchUI]);
+
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -141,17 +163,14 @@ const Page = () => {
               articles.map((article) => (
                 <StoriesCardHorizontal
                   key={article.id}
-                  article={{
-                    ...article,
-                    author_avatar: article.users.avatar,
-                    author_name: article.users.name,
-                  }}
+                  article={article}
                   isLiked={likes.has(article.id)}
                   isBookmarked={bookmarks.has(article.id)}
                   onLike={toggleLike}
                   onBookmark={toggleBookmark}
                 />
               ))}
+
           </div>
         )}
       </div>
