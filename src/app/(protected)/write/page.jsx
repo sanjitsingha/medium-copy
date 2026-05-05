@@ -57,6 +57,31 @@ export default function CreatePage() {
   const [fmt, setFmt] = useState({ bold: false, italic: false, underline: false, strike: false, ul: false, ol: false, block: "p" });
   const [hMenuOpen, setHMenuOpen] = useState(false);
 
+  /* toolbar scroll state */
+  const toolbarRef = useRef(null);
+  const [showLeftFade, setShowLeftFade] = useState(false);
+  const [showRightFade, setShowRightFade] = useState(false);
+
+  const checkScroll = () => {
+    if (!toolbarRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = toolbarRef.current;
+    setShowLeftFade(scrollLeft > 2);
+    setShowRightFade(scrollLeft < scrollWidth - clientWidth - 2);
+  };
+
+  useEffect(() => {
+    const el = toolbarRef.current;
+    if (el) {
+      el.addEventListener("scroll", checkScroll);
+      checkScroll();
+      window.addEventListener("resize", checkScroll);
+      return () => {
+        el.removeEventListener("scroll", checkScroll);
+        window.removeEventListener("resize", checkScroll);
+      };
+    }
+  }, []);
+
   /* form state */
   const [title, setTitle] = useState("");
   const [shortDesc, setShortDesc] = useState("");
@@ -293,73 +318,87 @@ export default function CreatePage() {
 
       <div className="sticky top-[64px] z-40 bg-white/95 backdrop-blur-md flex flex-col w-full border-b border-gray-200">
         {/* Action Topbar */}
-        <div className="flex items-center justify-end gap-3 px-8 py-2.5 border-b border-gray-100">
+        <div className="flex items-center justify-between sm:justify-end gap-2 px-4 sm:px-8 py-2.5 border-b border-gray-100">
           <button className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-1.5 px-2 py-1 rounded hover:bg-gray-50" onClick={() => setSeoOpen(!seoOpen)}>
             <div className={`w-2 h-2 rounded-full ${seo.metaTitle || seo.metaDesc ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-            SEO Settings
+            <span className="hidden sm:inline">SEO Settings</span>
+            <span className="sm:hidden">SEO</span>
           </button>
-          <button className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors px-3 py-1.5 rounded-full border border-gray-200 hover:border-gray-300 bg-white shadow-sm" onClick={saveDraft}>
-            Save draft
-          </button>
-          <button className="text-sm font-medium text-white bg-black hover:bg-gray-800 transition-colors px-5 py-1.5 rounded-full shadow-sm disabled:opacity-50" onClick={publishArticle} disabled={publishing}>
-            {publishing ? "Publishing..." : "Publish"}
-          </button>
+          <div className="flex items-center gap-2">
+            <button className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors px-3 py-1.5 rounded-full border border-gray-200 hover:border-gray-300 bg-white shadow-sm" onClick={saveDraft}>
+              Save<span className="hidden sm:inline"> draft</span>
+            </button>
+            <button className="text-sm font-medium text-white bg-black hover:bg-gray-800 transition-colors px-5 py-1.5 rounded-full shadow-sm disabled:opacity-50" onClick={publishArticle} disabled={publishing}>
+              {publishing ? "..." : "Publish"}
+            </button>
+          </div>
         </div>
 
         {/* Format Toolbar */}
-        <div className="flex items-center justify-center gap-1.5 px-4 py-2 w-full overflow-x-auto hide-scrollbar relative">
-          <button className={`w-8 h-8 flex items-center justify-center rounded transition-colors ${fmt.bold ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); run("bold"); }} title="Bold">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path></svg>
-          </button>
-          <button className={`w-8 h-8 flex items-center justify-center rounded transition-colors ${fmt.italic ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); run("italic"); }} title="Italic">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="4" x2="10" y2="4"></line><line x1="14" y1="20" x2="5" y2="20"></line><line x1="15" y1="4" x2="9" y2="20"></line></svg>
-          </button>
-          <button className={`w-8 h-8 flex items-center justify-center rounded transition-colors ${fmt.underline ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); run("underline"); }} title="Underline">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"></path><line x1="4" y1="21" x2="20" y2="21"></line></svg>
-          </button>
-          <button className={`w-8 h-8 flex items-center justify-center rounded transition-colors ${fmt.strike ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); run("strikeThrough"); }} title="Strikethrough">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4H9a3 3 0 0 0-2.83 4"></path><path d="M14 12a4 4 0 0 1 0 8H6"></path><line x1="4" y1="12" x2="20" y2="12"></line></svg>
-          </button>
+        <div className="relative w-full overflow-hidden">
+          {/* Left Fade */}
+          <div className={`absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none transition-opacity duration-300 ${showLeftFade ? 'opacity-100' : 'opacity-0'}`} />
 
-          <div className="w-px h-5 bg-gray-200 mx-1.5" />
+          {/* Right Fade */}
+          <div className={`absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none transition-opacity duration-300 ${showRightFade ? 'opacity-100' : 'opacity-0'}`} />
 
-          {/* Block Level Buttons */}
-          <button className={`w-8 h-8 flex items-center justify-center rounded font-bold font-serif text-sm transition-colors ${fmt.block === 'p' ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); toggleBlock("p"); }} title="Paragraph">P</button>
-          <button className={`w-8 h-8 flex items-center justify-center rounded font-bold font-serif text-sm transition-colors ${fmt.block === 'h1' ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); toggleBlock("h1"); }} title="Heading 1">H1</button>
-          <button className={`w-8 h-8 flex items-center justify-center rounded font-bold font-serif text-sm transition-colors ${fmt.block === 'h2' ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); toggleBlock("h2"); }} title="Heading 2">H2</button>
-          <button className={`w-8 h-8 flex items-center justify-center rounded font-bold font-serif text-sm transition-colors ${fmt.block === 'h3' ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); toggleBlock("h3"); }} title="Heading 3">H3</button>
+          <div
+            ref={toolbarRef}
+            className="flex items-center justify-start sm:justify-center gap-1.5 px-4 sm:px-10 py-2 w-full overflow-x-auto hide-scrollbar scroll-smooth"
+          >
+            <button className={`w-8 h-8 flex items-center justify-center rounded shrink-0 transition-colors ${fmt.bold ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); run("bold"); }} title="Bold">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path></svg>
+            </button>
+            <button className={`w-8 h-8 flex items-center justify-center rounded shrink-0 transition-colors ${fmt.italic ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); run("italic"); }} title="Italic">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="4" x2="10" y2="4"></line><line x1="14" y1="20" x2="5" y2="20"></line><line x1="15" y1="4" x2="9" y2="20"></line></svg>
+            </button>
+            <button className={`w-8 h-8 flex items-center justify-center rounded shrink-0 transition-colors ${fmt.underline ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); run("underline"); }} title="Underline">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"></path><line x1="4" y1="21" x2="20" y2="21"></line></svg>
+            </button>
+            <button className={`w-8 h-8 flex items-center justify-center rounded shrink-0 transition-colors ${fmt.strike ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); run("strikeThrough"); }} title="Strikethrough">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4H9a3 3 0 0 0-2.83 4"></path><path d="M14 12a4 4 0 0 1 0 8H6"></path><line x1="4" y1="12" x2="20" y2="12"></line></svg>
+            </button>
 
-          <div className="w-px h-5 bg-gray-200 mx-1.5" />
+            <div className="w-px h-5 bg-gray-200 mx-1.5 shrink-0" />
 
-          <button className={`w-8 h-8 flex items-center justify-center rounded transition-colors ${fmt.block === 'blockquote' ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); toggleBlock("blockquote"); }} title="Quote">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" /></svg>
-          </button>
-          <button className={`w-8 h-8 flex items-center justify-center rounded transition-colors ${fmt.block === 'pre' ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); toggleBlock("pre"); }} title="Code Block">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
-          </button>
+            {/* Block Level Buttons */}
+            <button className={`w-8 h-8 flex items-center justify-center rounded shrink-0 font-bold font-serif text-sm transition-colors ${fmt.block === 'p' ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); toggleBlock("p"); }} title="Paragraph">P</button>
+            <button className={`w-8 h-8 flex items-center justify-center rounded shrink-0 font-bold font-serif text-sm transition-colors ${fmt.block === 'h1' ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); toggleBlock("h1"); }} title="Heading 1">H1</button>
+            <button className={`w-8 h-8 flex items-center justify-center rounded shrink-0 font-bold font-serif text-sm transition-colors ${fmt.block === 'h2' ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); toggleBlock("h2"); }} title="Heading 2">H2</button>
+            <button className={`w-8 h-8 flex items-center justify-center rounded shrink-0 font-bold font-serif text-sm transition-colors ${fmt.block === 'h3' ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); toggleBlock("h3"); }} title="Heading 3">H3</button>
 
-          <div className="w-px h-5 bg-gray-200 mx-1.5" />
+            <div className="w-px h-5 bg-gray-200 mx-1.5 shrink-0" />
 
-          <button className={`w-8 h-8 flex items-center justify-center rounded transition-colors ${fmt.ul ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); run("insertUnorderedList"); }} title="Bullet List">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-          </button>
-          <button className={`w-8 h-8 flex items-center justify-center rounded transition-colors ${fmt.ol ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); run("insertOrderedList"); }} title="Numbered List">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="10" y1="6" x2="21" y2="6"></line><line x1="10" y1="12" x2="21" y2="12"></line><line x1="10" y1="18" x2="21" y2="18"></line><path d="M4 6h1v4"></path><path d="M4 10h2"></path><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path></svg>
-          </button>
+            <button className={`w-8 h-8 flex items-center justify-center rounded shrink-0 transition-colors ${fmt.block === 'blockquote' ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); toggleBlock("blockquote"); }} title="Quote">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" /></svg>
+            </button>
+            <button className={`w-8 h-8 flex items-center justify-center rounded shrink-0 transition-colors ${fmt.block === 'pre' ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); toggleBlock("pre"); }} title="Code Block">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+            </button>
 
-          <div className="w-px h-5 bg-gray-200 mx-1.5" />
+            <div className="w-px h-5 bg-gray-200 mx-1.5 shrink-0" />
 
-          <button className="w-8 h-8 flex items-center justify-center rounded text-gray-600 hover:bg-gray-100 hover:text-black transition-colors" onMouseDown={e => { e.preventDefault(); const u = prompt("URL:"); if (u) run("createLink", u); }} title="Link">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-          </button>
-          <button className="w-8 h-8 flex items-center justify-center rounded text-gray-600 hover:bg-gray-100 hover:text-black transition-colors" onMouseDown={e => { e.preventDefault(); imgRef.current?.click(); }} title="Image">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-          </button>
+            <button className={`w-8 h-8 flex items-center justify-center rounded shrink-0 transition-colors ${fmt.ul ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); run("insertUnorderedList"); }} title="Bullet List">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+            </button>
+            <button className={`w-8 h-8 flex items-center justify-center rounded shrink-0 transition-colors ${fmt.ol ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); run("insertOrderedList"); }} title="Numbered List">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="10" y1="6" x2="21" y2="6"></line><line x1="10" y1="12" x2="21" y2="12"></line><line x1="10" y1="18" x2="21" y2="18"></line><path d="M4 6h1v4"></path><path d="M4 10h2"></path><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path></svg>
+            </button>
+
+            <div className="w-px h-5 bg-gray-200 mx-1.5 shrink-0" />
+
+            <button className="w-8 h-8 flex items-center justify-center rounded shrink-0 text-gray-600 hover:bg-gray-100 hover:text-black transition-colors" onMouseDown={e => { e.preventDefault(); const u = prompt("URL:"); if (u) run("createLink", u); }} title="Link">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+            </button>
+            <button className="w-8 h-8 flex items-center justify-center rounded shrink-0 text-gray-600 hover:bg-gray-100 hover:text-black transition-colors" onMouseDown={e => { e.preventDefault(); imgRef.current?.click(); }} title="Image">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Editor Area */}
-      <div className="max-w-3xl mx-auto pt-16 px-6">
+      <div className="max-w-3xl mx-auto pt-8 sm:pt-16 px-4 sm:px-6">
 
         {/* Cover Image */}
         <div className="mb-8 group relative">
@@ -371,8 +410,8 @@ export default function CreatePage() {
           {cover && (
             <div className="relative rounded-lg overflow-hidden">
               <img src={cover} alt="Cover" className="w-full max-h-[400px] object-cover" />
-              <button className="absolute top-4 right-4  text-sm px-3 py-1 cursor-pointer  opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setCover(null)}>
-                <XCircleIcon className="size-5" />
+              <button className="absolute top-4 right-4 text-sm px-3 py-1 cursor-pointer opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity bg-black/10 backdrop-blur-sm rounded-full" onClick={() => setCover(null)}>
+                <XCircleIcon className="size-5 text-white sm:text-gray-900" />
               </button>
             </div>
           )}
@@ -380,7 +419,7 @@ export default function CreatePage() {
 
         <textarea
           ref={titleRef}
-          className="w-full text-4xl md:text-5xl font-bold text-gray-900 border-none outline-none resize-none bg-transparent placeholder-gray-300 leading-tight mb-4 overflow-hidden"
+          className="w-full text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 border-none outline-none resize-none bg-transparent placeholder-gray-300 leading-tight mb-4 overflow-hidden"
           placeholder="Title"
           rows={1}
           value={title}
@@ -440,12 +479,12 @@ export default function CreatePage() {
       </div>
 
       {/* Word Count Floating */}
-      <div className={`fixed bottom-6 right-8 text-xs text-gray-400 font-mono font-medium z-50 pointer-events-none transition-opacity ${seoOpen ? 'opacity-0' : 'opacity-100'}`}>
+      <div className={`fixed bottom-6 right-4 sm:right-8 text-xs text-gray-400 font-mono font-medium z-50 pointer-events-none transition-opacity ${seoOpen ? 'opacity-0' : 'opacity-100'}`}>
         {wc} {wc === 1 ? "word" : "words"}
       </div>
 
       {/* SEO Drawer */}
-      <div className={`fixed top-0 right-0 h-full w-[380px] bg-white border-l border-gray-100 shadow-[-8px_0_40px_rgba(0,0,0,0.06)] z-50 transform transition-transform duration-300 ease-in-out ${seoOpen ? 'translate-x-0' : 'translate-x-full'} flex flex-col`}>
+      <div className={`fixed top-0 right-0 h-full w-full sm:w-[380px] bg-white border-l border-gray-100 shadow-[-8px_0_40px_rgba(0,0,0,0.06)] z-50 transform transition-transform duration-300 ease-in-out ${seoOpen ? 'translate-x-0' : 'translate-x-full'} flex flex-col`}>
         <div className="flex items-center justify-between p-5 border-b border-gray-100 shrink-0">
           <div>
             <h2 className="text-sm font-bold text-gray-900">SEO Settings</h2>

@@ -201,3 +201,12 @@ body {
 .animate-dropdown {
   animation: dropdownFade 0.20s ease-in-out;
 }
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
