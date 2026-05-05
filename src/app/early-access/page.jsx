@@ -3,7 +3,7 @@ import React from 'react'
 const page = () => {
     return (
         <div className='w-full'>
-            <div className='max-w-[800px] mx-auto h-[calc(100vh-70px)] flex-col flex  justify-center'>
+            <div className='max-w-[800px] mx-auto h-[calc(100vh-64px)] flex-col flex  justify-center'>
                 <h1 className='font-creato tracking-tight text-2xl font-semibold'>Early Access.</h1>
                 <p className='text-sm mt-4 text-black/60'>
                     Be among the first to explore something new

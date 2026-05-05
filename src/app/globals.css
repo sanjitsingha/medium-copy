@@ -140,8 +140,12 @@
 
 
 
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
-  color: var(--background);
+  color: var(--foreground);
   font-family: Helvetica, sans-serif;
 }
 

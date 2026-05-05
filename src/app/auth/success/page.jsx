@@ -36,7 +36,7 @@ export default function OAuthSuccess() {
     );
 
   return (
-    <div className="flex items-center justify-center h-[calc(100vh-70px)] bg-white">
+    <div className="flex items-center justify-center h-[calc(100vh-64px)] bg-white">
       <div className="animate-pulse">
         <Image src={'/logo.png'} alt="Logo" width={80} height={80} priority />
       </div>

@@ -29,7 +29,7 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden md:flex flex-col sticky top-[60px] w-60 h-[calc(100vh-70px)]  py-8">
+    <aside className="hidden md:flex flex-col sticky top-[64px] w-60 h-[calc(100vh-64px)]  py-8">
       <nav className="flex flex-col gap-2 px-6">
        {menu.map((item) => {
   const active = pathname.endsWith(item.href);

@@ -15,7 +15,7 @@ export default function Home() {
   if (loading) {
     return (
       <>
-        <div className="w-full h-[calc(100vh-70px)] flex items-center justify-center">
+        <div className="w-full h-[calc(100vh-64px)] flex items-center justify-center">
           <div className="w-48 h-6 rounded-md shimmer" />
         </div>
       </>
