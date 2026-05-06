@@ -347,7 +347,7 @@ const page = () => {
                       </button>
 
                       {activeMenu === article.id && (
-                        <div className="absolute right-0 top-8 w-48 bg-gray-100 border border-gray-200 shadow-2xl rounded-xl overflow-hidden z-50 py-1">
+                        <div className="absolute right-0 top-8 w-48 bg-white border border-gray-100 shadow-2xl rounded-xl overflow-hidden z-50 py-1">
                           <Link
                             href={`/stats/${article.id}`}
                             className="flex px-4 py-2.5 text-[14px] text-gray-700 hover:bg-gray-50 transition-colors items-center gap-3"

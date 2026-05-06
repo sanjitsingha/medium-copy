@@ -462,7 +462,7 @@ export default function CreatePage() {
         {/* Cover Image */}
         <div className="mb-8 group relative">
           {!cover && (
-            <button className="text-gray-400 hover:text-gray-600 text-sm flex items-center gap-2" onClick={() => coverRef.current?.click()}>
+            <button className="text-gray-500 hover:text-gray-900 text-sm flex items-center gap-2" onClick={() => coverRef.current?.click()}>
               + Add cover image
             </button>
           )}
@@ -560,7 +560,7 @@ export default function CreatePage() {
         {/* Categories */}
         <div className="mt-16 pt-8 border-t border-gray-100 pb-16">
           <h3 className="text-sm font-semibold text-gray-700 mb-1">Topics</h3>
-          <p className="text-xs text-gray-400 mb-4">Select 3–5 topics that best describe your article</p>
+          <p className="text-xs text-gray-500 mb-4">Select 3–5 topics that best describe your article</p>
           <div className="flex flex-wrap gap-2">
             {CATEGORIES.map(cat => (
               <button
@@ -578,7 +578,7 @@ export default function CreatePage() {
       </div>
 
       {/* Word Count Floating */}
-      <div className={`fixed bottom-6 right-4 sm:right-8 text-xs text-gray-400 font-mono font-medium z-50 pointer-events-none transition-opacity ${seoOpen ? 'opacity-0' : 'opacity-100'}`}>
+      <div className={`fixed bottom-6 right-4 sm:right-8 text-xs text-gray-500 font-mono font-medium z-50 pointer-events-none transition-opacity ${seoOpen ? 'opacity-0' : 'opacity-100'}`}>
         {wc} {wc === 1 ? "word" : "words"}
       </div>
 
@@ -599,7 +599,7 @@ export default function CreatePage() {
               Search Preview <div className="flex-1 h-px bg-gray-100"></div>
             </h3>
             <div className="p-4 border border-gray-200 rounded-lg bg-gray-50/50">
-              <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2.5">Google Preview</div>
+              <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-2.5">Google Preview</div>
               <div className="text-xs text-green-700 mb-1 truncate">{serpUrl}</div>
               <div className="text-base text-blue-700 truncate leading-snug mb-1">{serpTitle}</div>
               <div className="text-[13px] text-gray-600 line-clamp-2 leading-relaxed">{serpDesc}</div>
