@@ -50,7 +50,7 @@ const YourReadingLIst = () => {
     return (
       <div className='w-full h-fit p-2'>
         <div className='flex items-center justify-between mb-4'>
-          <p className='font-creato font-bold'>Saved Stories</p>
+          <p className='font-creato text-black font-bold'>Saved Stories</p>
           <Link href="/library" className='text-sm text-gray-500 hover:text-black'>view all</Link>
         </div>
         <div className='animate-pulse space-y-4'>
@@ -88,7 +88,7 @@ const YourReadingLIst = () => {
         {bookmarks.map((bookmark) => (
           <div key={bookmark.id} className='group'>
             <div className='flex gap-2 items-center mb-2'>
-              <div className='w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center text-[10px] text-gray-500 font-medium overflow-hidden'>
+              <div className='w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center text-[10px] text-black/70 font-medium overflow-hidden'>
                 {bookmark.articles?.users?.avatar ? (
                   <Image src={bookmark.articles.users.avatar} alt='avatar' width={300} height={300} className='object-cover w-full h-full' />
                 ) : (

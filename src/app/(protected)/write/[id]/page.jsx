@@ -55,11 +55,14 @@ export default function EditCreatePage() {
   /* formatting state */
   const [fmt, setFmt] = useState({ bold: false, italic: false, underline: false, strike: false, ul: false, ol: false, block: "p" });
   const [hMenuOpen, setHMenuOpen] = useState(false);
+  const [linkModal, setLinkModal] = useState({ open: false, url: "", x: 0, y: 0 });
 
   /* toolbar scroll state */
   const toolbarRef = useRef(null);
   const [showLeftFade, setShowLeftFade] = useState(false);
   const [showRightFade, setShowRightFade] = useState(false);
+  const savedRange = useRef(null);
+  const editorContainerRef = useRef(null);
 
   const checkScroll = () => {
     if (!toolbarRef.current) return;
@@ -100,17 +103,17 @@ export default function EditCreatePage() {
       try {
         const { data, error } = await supabase.from("articles").select("*").eq("id", id).single();
         if (error) throw error;
-        
+
         setTitle(data.title || "");
         setShortDesc(data.meta_description || "");
         setCoverUrl(data.cover_image || "");
         if (data.cover_image) setCover(data.cover_image); // To show preview
         setSelCats(data.categories || []);
-        
+
         if (editorRef.current) {
           editorRef.current.innerHTML = data.content || "";
         }
-        
+
         setSeo({
           metaTitle: data.seo_title || "",
           metaDesc: data.seo_description || "",
@@ -172,6 +175,62 @@ export default function EditCreatePage() {
 
   const run = (cmd, val = null) => { document.execCommand(cmd, false, val); editorRef.current?.focus(); refFmt(); };
   const toggleBlock = tag => { document.execCommand("formatBlock", false, getBlock() === tag ? "p" : tag); refFmt(); setHMenuOpen(false); };
+
+  const openLinkModal = () => {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+
+    const range = sel.getRangeAt(0);
+    savedRange.current = range.cloneRange();
+
+    // Check for existing link
+    let existingUrl = "";
+    let node = range.commonAncestorContainer;
+    while (node && node !== editorRef.current && node.nodeType === 1) {
+      if (node.nodeName === "A") {
+        existingUrl = node.getAttribute("href") || "";
+        break;
+      }
+      node = node.parentNode;
+    }
+
+    const rect = range.getBoundingClientRect();
+    const containerRect = editorContainerRef.current?.getBoundingClientRect() || { left: 0, top: 0 };
+
+    let x = rect.left - containerRect.left + rect.width / 2;
+    let y = rect.bottom - containerRect.top + 10;
+
+    if (rect.width === 0 && rect.height === 0) {
+      const parent = range.commonAncestorContainer.parentElement;
+      if (parent) {
+        const pRect = parent.getBoundingClientRect();
+        x = pRect.left - containerRect.left;
+        y = pRect.bottom - containerRect.top + 10;
+      }
+    }
+
+    setLinkModal({ open: true, url: existingUrl, x, y });
+  };
+
+  const submitLink = () => {
+    if (savedRange.current) {
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(savedRange.current);
+
+      if (linkModal.url) {
+        let url = linkModal.url;
+        if (!url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("mailto:")) {
+          url = "https://" + url;
+        }
+        run("createLink", url);
+      } else {
+        run("unlink");
+      }
+    }
+    setLinkModal({ ...linkModal, open: false, url: "" });
+    savedRange.current = null;
+  };
 
   const toggleCat = cat => {
     setCatError("");
@@ -359,7 +418,7 @@ export default function EditCreatePage() {
             <button className={`w-8 h-8 flex items-center justify-center rounded shrink-0 transition-colors ${fmt.ul ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); run("insertUnorderedList"); }} title="Bullet List"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></button>
             <button className={`w-8 h-8 flex items-center justify-center rounded shrink-0 transition-colors ${fmt.ol ? 'bg-gray-200 text-black' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`} onMouseDown={e => { e.preventDefault(); run("insertOrderedList"); }} title="Numbered List"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="10" y1="6" x2="21" y2="6"></line><line x1="10" y1="12" x2="21" y2="12"></line><line x1="10" y1="18" x2="21" y2="18"></line><path d="M4 6h1v4"></path><path d="M4 10h2"></path><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path></svg></button>
             <div className="w-px h-5 bg-gray-200 mx-1.5 shrink-0" />
-            <button className="w-8 h-8 flex items-center justify-center rounded shrink-0 text-gray-600 hover:bg-gray-100 hover:text-black transition-colors" onMouseDown={e => { e.preventDefault(); const u = prompt("URL:"); if (u) run("createLink", u); }} title="Link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button>
+            <button className="w-8 h-8 flex items-center justify-center rounded shrink-0 text-gray-600 hover:bg-gray-100 hover:text-black transition-colors" onMouseDown={e => { e.preventDefault(); openLinkModal(); }} title="Link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button>
             <button className="w-8 h-8 flex items-center justify-center rounded shrink-0 text-gray-600 hover:bg-gray-100 hover:text-black transition-colors" onMouseDown={e => { e.preventDefault(); imgRef.current?.click(); }} title="Image"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></button>
           </div>
         </div>
@@ -371,7 +430,7 @@ export default function EditCreatePage() {
         {/* Cover Image */}
         <div className="mb-8 group relative">
           {!cover && (
-            <button className="text-gray-400 hover:text-gray-600 text-sm flex items-center gap-2" onClick={() => coverRef.current?.click()}>
+            <button className="text-gray-500 hover:text-gray-900 text-sm flex items-center gap-2" onClick={() => coverRef.current?.click()}>
               + Add cover image
             </button>
           )}
@@ -405,31 +464,71 @@ export default function EditCreatePage() {
           onInput={e => ar(e.target)}
         />
 
-        <div
-          ref={editorRef}
-          className="focus:outline-none min-h-[50vh] pb-16 text-gray-800
-            [&_p]:mb-4 [&_p]:leading-relaxed [&_p]:text-lg
-            [&_ul]:list-disc [&_ul]:ml-6 [&_ul]:mb-5 [&_ul_li]:pl-1 [&_ul_li]:mb-1.5
-            [&_ol]:list-decimal [&_ol]:ml-6 [&_ol]:mb-5 [&_ol_li]:pl-1 [&_ol_li]:mb-1.5
-            [&_h1]:text-4xl [&_h1]:font-bold [&_h1]:mb-4 [&_h1]:mt-10 [&_h1]:text-gray-900
-            [&_h2]:text-3xl [&_h2]:font-bold [&_h2]:mb-4 [&_h2]:mt-8 [&_h2]:text-gray-900
-            [&_h3]:text-2xl [&_h3]:font-bold [&_h3]:mb-3 [&_h3]:mt-6 [&_h3]:text-gray-900
-            [&_h4]:text-xl  [&_h4]:font-bold [&_h4]:mb-3 [&_h4]:mt-6 [&_h4]:text-gray-900
-            [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-5 [&_blockquote]:italic [&_blockquote]:text-gray-600 [&_blockquote]:my-5
-            [&_pre]:bg-gray-50 [&_pre]:p-4 [&_pre]:rounded-md [&_pre]:text-sm [&_pre]:font-mono [&_pre]:my-5 [&_pre]:border [&_pre]:border-gray-200
-            [&_a]:text-blue-600 [&_a:hover]:underline
-            empty:before:content-['Tell_your_story...'] empty:before:text-gray-300"
-          contentEditable
-          suppressContentEditableWarning
-          onInput={onInput}
-          onMouseUp={refFmt}
-          onKeyUp={refFmt}
-        />
+        <div className="relative" ref={editorContainerRef}>
+          <div
+            ref={editorRef}
+            className="focus:outline-none min-h-[50vh] pb-16 text-gray-800
+              [&_p]:mb-4 [&_p]:leading-relaxed [&_p]:text-lg
+              [&_ul]:list-disc [&_ul]:ml-6 [&_ul]:mb-5 [&_ul_li]:pl-1 [&_ul_li]:mb-1.5
+              [&_ol]:list-decimal [&_ol]:ml-6 [&_ol]:mb-5 [&_ol_li]:pl-1 [&_ol_li]:mb-1.5
+              [&_h1]:text-4xl [&_h1]:font-bold [&_h1]:mb-4 [&_h1]:mt-10 [&_h1]:text-gray-900
+              [&_h2]:text-3xl [&_h2]:font-bold [&_h2]:mb-4 [&_h2]:mt-8 [&_h2]:text-gray-900
+              [&_h3]:text-2xl [&_h3]:font-bold [&_h3]:mb-3 [&_h3]:mt-6 [&_h3]:text-gray-900
+              [&_h4]:text-xl  [&_h4]:font-bold [&_h4]:mb-3 [&_h4]:mt-6 [&_h4]:text-gray-900
+              [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-5 [&_blockquote]:italic [&_blockquote]:text-gray-600 [&_blockquote]:my-5
+              [&_pre]:bg-gray-50 [&_pre]:p-4 [&_pre]:rounded-md [&_pre]:text-sm [&_pre]:font-mono [&_pre]:my-5 [&_pre]:border [&_pre]:border-gray-200
+              [&_a]:text-blue-600 [&_a:hover]:underline
+              empty:before:content-['Tell_your_story...'] empty:before:text-gray-300"
+            contentEditable
+            suppressContentEditableWarning
+            onInput={onInput}
+            onMouseUp={refFmt}
+            onKeyUp={refFmt}
+          />
+
+          {/* Floating Link Modal (Relative to Editor Container) */}
+          {linkModal.open && (
+            <div
+              className="absolute z-[100] bg-white border border-gray-200 shadow-2xl rounded-xl p-1.5 flex items-center gap-1.5 animate-in fade-in zoom-in slide-in-from-top-2 duration-200"
+              style={{
+                left: Math.min(Math.max(0, linkModal.x - 150), (editorContainerRef.current?.clientWidth || 600) - 320),
+                top: linkModal.y,
+              }}
+            >
+              <div className="flex items-center bg-gray-50 rounded-lg px-2.5 py-1.5 focus-within:bg-white focus-within:ring-1 focus-within:ring-black/5 transition-all">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mr-2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                <input
+                  autoFocus
+                  className="w-48 sm:w-64 text-[13px] border-none outline-none bg-transparent"
+                  placeholder="Paste a link..."
+                  value={linkModal.url}
+                  onChange={e => setLinkModal({ ...linkModal, url: e.target.value })}
+                  onKeyDown={e => {
+                    if (e.key === "Enter") submitLink();
+                    if (e.key === "Escape") setLinkModal({ ...linkModal, open: false });
+                  }}
+                />
+              </div>
+              <button
+                className="h-8 px-3.5 bg-black text-white text-[11px] font-bold rounded-lg hover:bg-gray-800 transition-colors shadow-sm"
+                onClick={submitLink}
+              >
+                {linkModal.url ? "Apply" : "Unlink"}
+              </button>
+              <button
+                className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
+                onClick={() => setLinkModal({ ...linkModal, open: false })}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Categories */}
         <div className="mt-16 pt-8 border-t border-gray-100 pb-16">
           <h3 className="text-sm font-semibold text-gray-700 mb-1">Topics</h3>
-          <p className="text-xs text-gray-400 mb-4">Select 3–5 topics that best describe your article</p>
+          <p className="text-xs text-gray-500 mb-4">Select 3–5 topics that best describe your article</p>
           <div className="flex flex-wrap gap-2">
             {CATEGORIES.map(cat => (
               <button
@@ -447,7 +546,7 @@ export default function EditCreatePage() {
       </div>
 
       {/* Word Count Floating */}
-      <div className={`fixed bottom-6 right-4 sm:right-8 text-xs text-gray-400 font-mono font-medium z-50 pointer-events-none transition-opacity ${seoOpen ? 'opacity-0' : 'opacity-100'}`}>
+      <div className={`fixed bottom-6 right-4 sm:right-8 text-xs text-gray-500 font-mono font-medium z-50 pointer-events-none transition-opacity ${seoOpen ? 'opacity-0' : 'opacity-100'}`}>
         {wc} {wc === 1 ? "word" : "words"}
       </div>
 
@@ -468,7 +567,7 @@ export default function EditCreatePage() {
               Search Preview <div className="flex-1 h-px bg-gray-100"></div>
             </h3>
             <div className="p-4 border border-gray-200 rounded-lg bg-gray-50/50">
-              <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2.5">Google Preview</div>
+              <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-2.5">Google Preview</div>
               <div className="text-xs text-green-700 mb-1 truncate">{serpUrl}</div>
               <div className="text-base text-blue-700 truncate leading-snug mb-1">{serpTitle}</div>
               <div className="text-[13px] text-gray-600 line-clamp-2 leading-relaxed">{serpDesc}</div>
