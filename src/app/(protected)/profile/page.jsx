@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { useAuthContext } from "@/context/AuthContext";
-import { ArrowRightStartOnRectangleIcon, ArrowUpRightIcon } from "@heroicons/react/24/outline";
+import { ArrowRightStartOnRectangleIcon } from "@heroicons/react/24/outline";
 import Modal from "@/app/components/ui/Modal";
 import { useRouter } from "next/navigation";
 import { PencilIcon } from "@heroicons/react/24/outline";
@@ -11,35 +11,20 @@ import { logout } from "../../../../services/authService";
 const Page = () => {
   const router = useRouter();
   const [profile, setProfile] = useState(null);
-  const { user, loading, setUser } = useAuthContext();
+  const { user, loading } = useAuthContext();
   const fileInputRef = useRef(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
 
   const INTERESTS = [
-    "Technology",
-    "AI",
-    "Startups",
-    "Business",
-    "Programming",
-    "Design",
-    "Productivity",
-    "Finance",
-    "Marketing",
-    "Health",
-    "Career",
-    "Sports",
-    "Science",
-    "Writing",
+    "Technology", "AI", "Startups", "Business", "Programming",
+    "Design", "Productivity", "Finance", "Marketing", "Health",
+    "Career", "Sports", "Science", "Writing",
   ];
 
-  // State for preferences
-
-
-
+  // ── Fetch profile from Supabase users table ──
   useEffect(() => {
     const fetchProfile = async () => {
       const { data: authData } = await supabase.auth.getUser();
-
       if (!authData?.user) return;
 
       const { data } = await supabase
@@ -54,62 +39,31 @@ const Page = () => {
     fetchProfile();
   }, []);
 
-  const [selectedInterests, setSelectedInterests] = useState(
-    user?.prefs?.interests || []
-  );
+  // ── Re-fetch profile after any update ──
+  const refreshUser = async () => {
+    if (!user?.id) return;
+    const { data } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+    if (data) setProfile(data);
+  };
+
+  // ── Preferences ──
+  const [selectedInterests, setSelectedInterests] = useState([]);
   const [prefLoading, setPrefLoading] = useState(false);
   const [prefMsg, setPrefMsg] = useState(null);
 
-  // Toggle chip selection logic
   const toggleInterest = (interest) => {
     setSelectedInterests((prev) => {
-      if (prev.includes(interest)) {
-        return prev.filter((i) => i !== interest);
-      }
-      if (prev.length >= 5) return prev; // max 5 interests
+      if (prev.includes(interest)) return prev.filter((i) => i !== interest);
+      if (prev.length >= 5) return prev;
       return [...prev, interest];
     });
   };
-  // Save preferences to Appwrite 
-  const handleUpdatePreferences = async () => {
-    if (selectedInterests.length < 3) {
-      setPrefMsg({
-        type: "error",
-        text: "Please select at least 3 interests",
-      });
-      return;
-    }
 
-    try {
-      setPrefLoading(true);
-      setPrefMsg(null);
-
-      await account.updatePrefs({
-        ...user.prefs,
-        interests: selectedInterests,
-      });
-
-      setPrefMsg({
-        type: "success",
-        text: "Preferences updated successfully",
-      });
-    } catch (err) {
-      setPrefMsg({
-        type: "error",
-        text: err.message || "Failed to update preferences",
-      });
-    } finally {
-      setPrefLoading(false);
-      setPreferencesOpen(false);
-    }
-  };
-
-  // collapsible bio (kept if you still need it)
-  const [BioExpand, setBioExpand] = useState(false);
-  const contentRef = useRef(null);
-  const [height, setHeight] = useState("0px");
-
-  // modal states
+  // ── Modal states ──
   const [usernameModalOpen, setUsernameModalOpen] = useState(false);
   const [bioModalOpen, setBioModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -118,7 +72,7 @@ const Page = () => {
   const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
 
-  // form states
+  // ── Form states ──
   const [newUsername, setNewUsername] = useState("");
   const [usernameLoading, setUsernameLoading] = useState(false);
   const [usernameMsg, setUsernameMsg] = useState(null);
@@ -131,235 +85,161 @@ const Page = () => {
   const [bioLoading, setBioLoading] = useState(false);
   const [bioMsg, setBioMsg] = useState(null);
 
-  const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [passLoading, setPassLoading] = useState(false);
   const [passMsg, setPassMsg] = useState(null);
 
+  // ── Populate form inputs when profile loads ──
+  useEffect(() => {
+    if (profile) {
+      setDisplayName(profile.name || "");
+      setBioText(profile.bio || "");
+      setNewUsername(profile.username || "");
+      setSelectedInterests(Array.isArray(profile.interests) ? profile.interests : []);
+    }
+  }, [profile]);
 
-
+  // ── Logout ──
   const handleLogout = async () => {
-    await logoutUser();
-    setUser(null);
-    router.refresh();
-  };
-  const handleSelectAvatar = async (avatarId) => {
     try {
-      setAvatarUploading(true);
-
-      await account.updatePrefs({
-        ...(user.prefs || {}),
-        avatar: avatarId,
-      });
-
-      await refreshUser();
-      setAvatarModalOpen(false);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to update avatar");
-    } finally {
-      setAvatarUploading(false);
-    }
+      await logout();
+    } catch (_) { }
+    router.push("/");
   };
 
-  // fill inputs when modal opens from existing user
-  useEffect(() => {
-    if (user) {
-      setDisplayName(user.name || "");
-      setBioText((user.prefs && user.prefs.bio) || "");
-      setNewUsername((user.prefs && user.prefs.username) || "");
-    }
-  }, [user]);
-
-  // animate expand/collapse by auto-calculating content height
-  useEffect(() => {
-    if (BioExpand) {
-      setHeight(contentRef.current?.scrollHeight + "px" || "0px");
-    } else {
-      setHeight("0px");
-    }
-  }, [BioExpand]);
-
-  // UTILS: refresh user from Appwrite and update AuthContext
-  async function refreshUser() {
-    try {
-      const updated = await account.get();
-      setUser(updated);
-    } catch (err) {
-      console.error("refreshUser error", err);
-    }
-  }
-
-  // ------------------ Handlers ------------------
-
-  // Update Display Name
+  // ── Update Display Name ──
   const handleUpdateDisplayName = async () => {
     setDisplayLoading(true);
     setDisplayMsg(null);
-
     try {
-      await account.updateName(displayName); // Appwrite method for name
+      const { error } = await supabase
+        .from("users")
+        .update({ name: displayName })
+        .eq("id", user.id);
+      if (error) throw error;
       await refreshUser();
       setDisplayMsg({ type: "success", text: "Display name updated." });
-      setTimeout(() => {
-        setDisplayNameModal(false);
-        setDisplayMsg(null);
-      }, 900);
+      setTimeout(() => { setDisplayNameModal(false); setDisplayMsg(null); }, 900);
     } catch (err) {
-      console.error(err);
       setDisplayMsg({ type: "error", text: err.message || "Update failed" });
     } finally {
       setDisplayLoading(false);
     }
   };
 
-  // Update Username (stored in prefs)
+  // ── Update Username ──
   const handleUpdateUsername = async () => {
     setUsernameLoading(true);
     setUsernameMsg(null);
-
     try {
-      // Update prefs (merge new object)
-      await account.updatePrefs({
-        ...(user.prefs || {}),
-        username: newUsername,
-      });
+      const { error } = await supabase
+        .from("users")
+        .update({ username: newUsername })
+        .eq("id", user.id);
+      if (error) throw error;
       await refreshUser();
       setUsernameMsg({ type: "success", text: "Username updated." });
-      setTimeout(() => {
-        setUsernameModalOpen(false);
-        setUsernameMsg(null);
-      }, 900);
+      setTimeout(() => { setUsernameModalOpen(false); setUsernameMsg(null); }, 900);
     } catch (err) {
-      console.error(err);
       setUsernameMsg({ type: "error", text: err.message || "Update failed" });
     } finally {
       setUsernameLoading(false);
     }
   };
 
-  // Update Bio
+  // ── Update Bio ──
   const handleUpdateBio = async () => {
     setBioLoading(true);
     setBioMsg(null);
-
     try {
-      await account.updatePrefs({ ...(user.prefs || {}), bio: bioText });
+      const { error } = await supabase
+        .from("users")
+        .update({ bio: bioText })
+        .eq("id", user.id);
+      if (error) throw error;
       await refreshUser();
       setBioMsg({ type: "success", text: "Bio updated." });
-      setTimeout(() => {
-        setBioModalOpen(false);
-        setBioMsg(null);
-      }, 900);
+      setTimeout(() => { setBioModalOpen(false); setBioMsg(null); }, 900);
     } catch (err) {
-      console.error(err);
       setBioMsg({ type: "error", text: err.message || "Update failed" });
     } finally {
       setBioLoading(false);
     }
   };
 
-  // Update Password (tries common SDK signatures)
+  // ── Update Preferences ──
+  const handleUpdatePreferences = async () => {
+    if (selectedInterests.length < 3) {
+      setPrefMsg({ type: "error", text: "Please select at least 3 interests" });
+      return;
+    }
+    try {
+      setPrefLoading(true);
+      setPrefMsg(null);
+      const { error } = await supabase
+        .from("users")
+        .update({ interests: selectedInterests })
+        .eq("id", user.id);
+      if (error) throw error;
+      await refreshUser();
+      setPrefMsg({ type: "success", text: "Preferences updated successfully" });
+      setTimeout(() => { setPreferencesOpen(false); setPrefMsg(null); }, 900);
+    } catch (err) {
+      setPrefMsg({ type: "error", text: err.message || "Failed to update preferences" });
+    } finally {
+      setPrefLoading(false);
+    }
+  };
+
+  // ── Change Password (Supabase only needs new password) ──
   const handleChangePassword = async () => {
+    if (!newPassword || newPassword.length < 6) {
+      setPassMsg({ type: "error", text: "Password must be at least 6 characters." });
+      return;
+    }
     setPassLoading(true);
     setPassMsg(null);
-
     try {
-      let done = false;
-      // Try positional signature: updatePassword(newPassword, oldPassword)
-      try {
-        // some SDKs expect (password, oldPassword)
-        // call and await
-        // eslint-disable-next-line no-underscore-dangle
-        await account.updatePassword(newPassword, oldPassword);
-        done = true;
-      } catch (err1) {
-        console.warn("positional updatePassword failed", err1?.message || err1);
-      }
-
-      if (!done) {
-        // Try object signature: updatePassword({ password, oldPassword })
-        try {
-          await account.updatePassword({ password: newPassword, oldPassword });
-          done = true;
-        } catch (err2) {
-          console.warn("object updatePassword failed", err2?.message || err2);
-        }
-      }
-
-      if (!done) {
-        // Try alternate object key names if SDK expects them
-        try {
-          await account.updatePassword({ newPassword, oldPassword });
-          done = true;
-        } catch (err3) {
-          console.warn(
-            "alternate updatePassword failed",
-            err3?.message || err3
-          );
-        }
-      }
-
-      if (!done)
-        throw new Error(
-          "Unable to update password with current SDK. Check SDK docs/version."
-        );
-
-      // success
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
       setPassMsg({ type: "success", text: "Password updated." });
-      setOldPassword("");
       setNewPassword("");
-      setTimeout(() => {
-        setChangePasswordOpen(false);
-        setPassMsg(null);
-      }, 900);
+      setTimeout(() => { setChangePasswordOpen(false); setPassMsg(null); }, 900);
     } catch (err) {
-      console.error(err);
-      setPassMsg({
-        type: "error",
-        text:
-          err.message ||
-          "Failed to update password. Ensure old password is correct and new password meets policy.",
-      });
+      setPassMsg({ type: "error", text: err.message || "Failed to update password." });
     } finally {
       setPassLoading(false);
     }
   };
 
-  //Handle Avatar Change
-
+  // ── Avatar Upload ──
   const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    // optional validation
-    if (file.size > 2 * 1024 * 1024) {
-      alert("Max image size is 2MB");
-      return;
-    }
+    if (file.size > 2 * 1024 * 1024) { alert("Max image size is 2MB"); return; }
 
     try {
       setAvatarUploading(true);
+      const fileExt = file.name.split(".").pop();
+      const filePath = `avatars/${user.id}.${fileExt}`;
 
-      // delete old avatar if exists
-      if (user?.prefs?.avatar) {
-        await storage.deleteFile("article-images", user.prefs.avatar);
-      }
+      const { error: uploadError } = await supabase.storage
+        .from("article-images")
+        .upload(filePath, file, { upsert: true });
+      if (uploadError) throw uploadError;
 
-      // upload new avatar
-      const uploaded = await storage.createFile(
-        "article-images",
-        ID.unique(),
-        file
-      );
+      const { data: { publicUrl } } = supabase.storage
+        .from("article-images")
+        .getPublicUrl(filePath);
 
-      // save fileId in prefs
-      await account.updatePrefs({
-        ...(user.prefs || {}),
-        avatar: uploaded.$id,
-      });
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({ avatar: publicUrl })
+        .eq("id", user.id);
+      if (updateError) throw updateError;
 
       await refreshUser();
+      setAvatarModalOpen(false);
     } catch (err) {
       console.error("Avatar upload failed", err);
       alert("Failed to upload avatar");
@@ -368,17 +248,8 @@ const Page = () => {
     }
   };
 
-  //Avatar Url Helper
-
-  const getAvatarUrl = () => {
-    if (!user?.prefs?.avatar) return "/default-avatar.png";
-
-    return storage.getFileView("article-images", user.prefs.avatar);
-  };
-
-  // ------------------ UI ------------------
-
-  if (!user) return null; // or show loading/redirect as you prefer
+  // ── UI ──
+  if (!user) return null;
 
   return (
     <div className="w-full bg-white min-h-screen pb-20">
@@ -432,7 +303,7 @@ const Page = () => {
             <div className="flex items-center justify-between py-6 border-b border-gray-200">
               <div className="space-y-1 flex-1 pr-4">
                 <h2 className="text-[15px] font-medium text-black">Email address</h2>
-                <p className="text-sm text-gray-500">{profile?.email || "—"}</p>
+                <p className="text-sm text-gray-500">{profile?.email || user?.email || "—"}</p>
               </div>
             </div>
           </section>
@@ -462,7 +333,7 @@ const Page = () => {
             <h3 className="text-xs font-semibold text-red-500 mb-2 tracking-widest uppercase">Danger Zone</h3>
 
             <button
-              onClick={logout}
+              onClick={handleLogout}
               className="w-full text-left flex items-center justify-between py-6 cursor-pointer group"
             >
               <div className="space-y-1">
@@ -481,11 +352,10 @@ const Page = () => {
         </div>
       </div>
 
-      {/* ---------- Display Name Modal ---------- */}
+      {/* ── Display Name Modal ── */}
       <Modal open={displayNameModal} onOpenChange={setDisplayNameModal}>
         <div className="p-2">
           <h2 className="text-xl font-semibold text-black mb-6">Display Name</h2>
-
           <input
             placeholder="New Display Name"
             className="outline-none w-full border-b border-gray-200 focus:border-black text-black text-[15px] py-2 transition-colors placeholder:text-gray-400"
@@ -494,39 +364,24 @@ const Page = () => {
             onChange={(e) => setDisplayName(e.target.value)}
             autoFocus
           />
-
           {displayMsg && (
-            <p
-              className={`mt-3 text-sm ${displayMsg.type === "error" ? "text-red-500" : "text-green-600"
-                }`}
-            >
+            <p className={`mt-3 text-sm ${displayMsg.type === "error" ? "text-red-500" : "text-green-600"}`}>
               {displayMsg.text}
             </p>
           )}
-
           <div className="flex gap-3 mt-8 justify-end">
-            <button
-              onClick={() => setDisplayNameModal(false)}
-              className="px-5 py-2 text-[14px] text-gray-500 hover:text-black font-medium transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleUpdateDisplayName}
-              disabled={displayLoading}
-              className="px-5 py-2 text-[14px] bg-black text-white rounded-full font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
-            >
+            <button onClick={() => setDisplayNameModal(false)} className="px-5 py-2 text-[14px] text-gray-500 hover:text-black font-medium transition-colors">Cancel</button>
+            <button onClick={handleUpdateDisplayName} disabled={displayLoading} className="px-5 py-2 text-[14px] bg-black text-white rounded-full font-medium hover:bg-gray-800 transition-colors disabled:opacity-50">
               {displayLoading ? "Saving..." : "Save"}
             </button>
           </div>
         </div>
       </Modal>
 
-      {/* ---------- Username Modal ---------- */}
+      {/* ── Username Modal ── */}
       <Modal open={usernameModalOpen} onOpenChange={setUsernameModalOpen}>
         <div className="p-2">
           <h2 className="text-xl font-semibold text-black mb-6">Change Username</h2>
-
           <input
             type="text"
             placeholder="@newusername"
@@ -535,39 +390,24 @@ const Page = () => {
             onChange={(e) => setNewUsername(e.target.value)}
             autoFocus
           />
-
           {usernameMsg && (
-            <p
-              className={`mt-3 text-sm ${usernameMsg.type === "error" ? "text-red-500" : "text-green-600"
-                }`}
-            >
+            <p className={`mt-3 text-sm ${usernameMsg.type === "error" ? "text-red-500" : "text-green-600"}`}>
               {usernameMsg.text}
             </p>
           )}
-
           <div className="flex gap-3 mt-8 justify-end">
-            <button
-              onClick={() => setUsernameModalOpen(false)}
-              className="px-5 py-2 text-[14px] text-gray-500 hover:text-black font-medium transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleUpdateUsername}
-              disabled={usernameLoading}
-              className="px-5 py-2 text-[14px] bg-black text-white rounded-full font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
-            >
+            <button onClick={() => setUsernameModalOpen(false)} className="px-5 py-2 text-[14px] text-gray-500 hover:text-black font-medium transition-colors">Cancel</button>
+            <button onClick={handleUpdateUsername} disabled={usernameLoading} className="px-5 py-2 text-[14px] bg-black text-white rounded-full font-medium hover:bg-gray-800 transition-colors disabled:opacity-50">
               {usernameLoading ? "Saving..." : "Save"}
             </button>
           </div>
         </div>
       </Modal>
 
-      {/* ---------- Bio Modal ---------- */}
+      {/* ── Bio Modal ── */}
       <Modal open={bioModalOpen} onOpenChange={setBioModalOpen}>
         <div className="p-2">
           <h2 className="text-xl font-semibold text-black mb-6">Short bio</h2>
-
           <textarea
             placeholder="Write your bio..."
             className="outline-none p-3 text-[15px] w-full text-black rounded-xl bg-gray-50 border border-gray-200 focus:border-gray-400 focus:bg-white transition-all resize-none"
@@ -576,44 +416,25 @@ const Page = () => {
             rows={5}
             autoFocus
           />
-
           {bioMsg && (
-            <p
-              className={`mt-3 text-sm ${bioMsg.type === "error" ? "text-red-500" : "text-green-600"
-                }`}
-            >
+            <p className={`mt-3 text-sm ${bioMsg.type === "error" ? "text-red-500" : "text-green-600"}`}>
               {bioMsg.text}
             </p>
           )}
-
           <div className="flex gap-3 mt-8 justify-end">
-            <button
-              onClick={() => setBioModalOpen(false)}
-              className="px-5 py-2 text-[14px] text-gray-500 hover:text-black font-medium transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleUpdateBio}
-              disabled={bioLoading}
-              className="px-5 py-2 text-[14px] bg-black text-white rounded-full font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
-            >
+            <button onClick={() => setBioModalOpen(false)} className="px-5 py-2 text-[14px] text-gray-500 hover:text-black font-medium transition-colors">Cancel</button>
+            <button onClick={handleUpdateBio} disabled={bioLoading} className="px-5 py-2 text-[14px] bg-black text-white rounded-full font-medium hover:bg-gray-800 transition-colors disabled:opacity-50">
               {bioLoading ? "Saving..." : "Save"}
             </button>
           </div>
         </div>
       </Modal>
 
-      {/* ---------- Preferences Modal ---------- */}
+      {/* ── Preferences Modal ── */}
       <Modal open={preferencesOpen} onOpenChange={setPreferencesOpen}>
         <div className="p-2">
           <h2 className="text-xl font-semibold text-black mb-2">Topics of Interest</h2>
-
-          <p className="text-[15px] text-gray-500 mb-6">
-            Choose at least 3 topics you're interested in reading about.
-          </p>
-
-          {/* Chips */}
+          <p className="text-[15px] text-gray-500 mb-6">Choose at least 3 topics you&apos;re interested in reading about.</p>
           <div className="flex flex-wrap gap-2.5 mb-6">
             {INTERESTS.map((interest) => {
               const isSelected = selectedInterests.includes(interest);
@@ -621,103 +442,55 @@ const Page = () => {
                 <button
                   key={interest}
                   onClick={() => toggleInterest(interest)}
-                  className={`px-4 py-2 rounded-full text-[14px] border transition-colors ${isSelected
-                    ? "bg-black text-white border-black"
-                    : "bg-white text-gray-700 border-gray-200 hover:border-gray-400"
-                    }`}
+                  className={`px-4 py-2 rounded-full text-[14px] border transition-colors ${isSelected ? "bg-black text-white border-black" : "bg-white text-gray-700 border-gray-200 hover:border-gray-400"}`}
                 >
                   {interest}
                 </button>
               );
             })}
           </div>
-
-          {/* Counter */}
-          <p className="text-sm text-gray-400 mb-2">
-            {selectedInterests.length} / 5 selected
-          </p>
-
-          {/* Message */}
+          <p className="text-sm text-gray-400 mb-2">{selectedInterests.length} / 5 selected</p>
           {prefMsg && (
-            <p
-              className={`mt-3 text-sm ${prefMsg.type === "error" ? "text-red-500" : "text-green-600"
-                }`}
-            >
+            <p className={`mt-3 text-sm ${prefMsg.type === "error" ? "text-red-500" : "text-green-600"}`}>
               {prefMsg.text}
             </p>
           )}
-
-          {/* Actions */}
           <div className="flex gap-3 mt-8 justify-end">
-            <button
-              onClick={() => setPreferencesOpen(false)}
-              className="px-5 py-2 text-[14px] text-gray-500 hover:text-black font-medium transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleUpdatePreferences}
-              disabled={prefLoading}
-              className="px-5 py-2 text-[14px] bg-black text-white rounded-full font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
-            >
+            <button onClick={() => setPreferencesOpen(false)} className="px-5 py-2 text-[14px] text-gray-500 hover:text-black font-medium transition-colors">Cancel</button>
+            <button onClick={handleUpdatePreferences} disabled={prefLoading} className="px-5 py-2 text-[14px] bg-black text-white rounded-full font-medium hover:bg-gray-800 transition-colors disabled:opacity-50">
               {prefLoading ? "Saving..." : "Save"}
             </button>
           </div>
         </div>
       </Modal>
 
-      {/* ---------- Change Password Modal ---------- */}
+      {/* ── Change Password Modal ── */}
       <Modal open={changePasswordOpen} onOpenChange={setChangePasswordOpen}>
         <div className="p-2">
           <h2 className="text-xl font-semibold text-black mb-6">Change Password</h2>
-
-          <div className="space-y-6">
-            <input
-              placeholder="Current Password"
-              className="outline-none w-full border-b border-gray-200 focus:border-black text-black text-[15px] py-2 transition-colors placeholder:text-gray-400"
-              type="password"
-              value={oldPassword}
-              onChange={(e) => setOldPassword(e.target.value)}
-              autoFocus
-            />
-
-            <input
-              placeholder="New Password"
-              className="outline-none w-full border-b border-gray-200 focus:border-black text-black text-[15px] py-2 transition-colors placeholder:text-gray-400"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-          </div>
-
+          <input
+            placeholder="New Password (min 6 characters)"
+            className="outline-none w-full border-b border-gray-200 focus:border-black text-black text-[15px] py-2 transition-colors placeholder:text-gray-400"
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            autoFocus
+          />
           {passMsg && (
-            <p
-              className={`mt-3 text-sm ${passMsg.type === "error" ? "text-red-500" : "text-green-600"
-                }`}
-            >
+            <p className={`mt-3 text-sm ${passMsg.type === "error" ? "text-red-500" : "text-green-600"}`}>
               {passMsg.text}
             </p>
           )}
-
           <div className="flex gap-3 mt-8 justify-end">
-            <button
-              onClick={() => setChangePasswordOpen(false)}
-              className="px-5 py-2 text-[14px] text-gray-500 hover:text-black font-medium transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleChangePassword}
-              disabled={passLoading}
-              className="px-5 py-2 text-[14px] bg-black text-white rounded-full font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
-            >
+            <button onClick={() => setChangePasswordOpen(false)} className="px-5 py-2 text-[14px] text-gray-500 hover:text-black font-medium transition-colors">Cancel</button>
+            <button onClick={handleChangePassword} disabled={passLoading} className="px-5 py-2 text-[14px] bg-black text-white rounded-full font-medium hover:bg-gray-800 transition-colors disabled:opacity-50">
               {passLoading ? "Saving..." : "Change"}
             </button>
           </div>
         </div>
       </Modal>
 
-      {/* ---------- Delete Account modal (keeps as demo; implement server-side deletion carefully) ---------- */}
+      {/* ── Delete Account Modal ── */}
       <Modal open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
         <div className="p-2">
           <h2 className="text-xl font-semibold text-red-600 mb-2">Delete Account</h2>
@@ -725,47 +498,25 @@ const Page = () => {
             This will permanently delete your account and all associated content. This action cannot be undone.
           </p>
           <div className="flex gap-3 mt-4 justify-end">
-            <button
-              onClick={() => setDeleteModalOpen(false)}
-              className="px-5 py-2 text-[14px] text-gray-500 hover:text-black font-medium transition-colors"
-            >
-              Cancel
-            </button>
+            <button onClick={() => setDeleteModalOpen(false)} className="px-5 py-2 text-[14px] text-gray-500 hover:text-black font-medium transition-colors">Cancel</button>
             <button
               className="px-5 py-2 text-[14px] bg-red-600 text-white rounded-full font-medium hover:bg-red-700 transition-colors"
-              onClick={() => {
-                // implement deletion carefully — server-side is recommended.
-                alert("Implement account deletion on server or using Admin SDK.");
-              }}
+              onClick={() => alert("Implement account deletion on server or using Admin SDK.")}
             >
               Delete Account
             </button>
           </div>
         </div>
       </Modal>
+
+      {/* ── Avatar Modal ── */}
       <Modal open={avatarModalOpen} onOpenChange={setAvatarModalOpen}>
         <div className="p-2 text-center">
           <h2 className="text-xl font-semibold text-black mb-2">Profile picture</h2>
           <p className="text-[15px] text-gray-500 mb-8">Choose an image for your profile.</p>
 
-          {/* Avatar Grid */}
-          <div className="grid grid-cols-4 gap-3 mb-4">
-            {/* {AVATARS.map((id) => (
-              <img
-                key={id}
-                src={storage.getFileView("article-images", id)}
-                className={`w-14 h-14 rounded-full cursor-pointer border hover:scale-105 transition ${avatarUploading ? "pointer-events-none opacity-50" : ""
-                  }`}
-                onClick={() => handleSelectAvatar(id)}
-              />
-            ))} */}
-          </div>
-
-          {/* Upload Option */}
           <button
-            onClick={() => {
-              if (!avatarUploading) fileInputRef.current.click();
-            }}
+            onClick={() => { if (!avatarUploading) fileInputRef.current.click(); }}
             disabled={avatarUploading}
             className="w-full bg-black hover:bg-gray-800 transition-colors text-white py-3 rounded-full font-medium disabled:opacity-50"
           >

@@ -116,7 +116,7 @@ export default function Page() {
   /* ================= UI ================= */
   return (
     <div className="w-full max-w-[900px] mx-auto px-4 pt-6">
-      <h1 className="text-[22px] font-semibold mb-6">Explore</h1>
+      <h1 className="text-[22px] text-black font-semibold mb-6">Explore</h1>
 
       <div className="flex flex-wrap gap-3 mb-8">
         {CATEGORIES.map((cat) => {

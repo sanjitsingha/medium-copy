@@ -200,7 +200,7 @@ export default function ReadArticlePage() {
         <div className="flex items-center bg-white px-4 border border-gray-200 h-10 rounded-full gap-2">
           <button
             title="like"
-            onClick={() => onLike(article.id)}
+            onClick={() => toggleLike(article.id)}
             className="cursor-pointer transition-transform active:scale-85 flex items-center gap-2"
           >
             <span>
@@ -222,8 +222,8 @@ export default function ReadArticlePage() {
         </div>
         <div className="flex items-center bg-white px-4 border border-gray-200 h-10  rounded-full gap-2">
           <button
-            title="like"
-            onClick={() => onLike(article.id)}
+            title="share"
+            onClick={handleShare}
             className="cursor-pointer transition-transform active:scale-85 flex items-center gap-2"
           >
             <span>

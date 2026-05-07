@@ -80,7 +80,7 @@ const YourReadingLIst = () => {
   return (
     <div className='w-full h-fit p-2'>
       <div className='flex items-center justify-between mb-4'>
-        <p className='font-creato font-bold text-[16px]'>Saved Stories</p>
+        <p className='font-creato text-black font-bold text-[16px]'>Saved Stories</p>
         <Link href="/library" className='text-sm text-gray-500 hover:text-black'>view all</Link>
       </div>
 

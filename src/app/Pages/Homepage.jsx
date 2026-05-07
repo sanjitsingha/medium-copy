@@ -138,7 +138,7 @@ export default function Homepage() {
 
         {/* RIGHT */}
         <div className="hidden lg:block w-[320px] pt-6 border-l border-gray-200 pl-6">
-          <div className="sticky top-[80px]">
+          <div className="sticky top-[100px]">
             <YourReadingLIst />
             <br />
             <br />
