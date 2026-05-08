@@ -26,7 +26,7 @@ export default function SignUpOptions() {
         </Link>
       </p>
       <p className="text-[12px] text-center  text-black/60 mt-6">
-        By clicking "Sign up", you accept Vichento's Terms of Service and Privacy
+        By clicking &quot;Sign up&quot;, you accept Vichento&apos;s Terms of Service and Privacy
         Policy.
       </p>
     </div>

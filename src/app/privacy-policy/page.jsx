@@ -35,7 +35,7 @@ const page = () => {
             </p>
             <p className='text-sm font-semibold mt-2'>c. Authentication Data</p>
             <p className='text-sm text-gray-500 mt-2'>
-              We use third-party authentication services such as Appwrite and Firebase Authentication, which may collect and process login credentials securely.
+              We use Supabase Authentication, which may collect and process login credentials securely.
             </p>
             <p className='text-sm font-semibold mt-2'>d. Usage Data</p>
             <p className='text-sm text-gray-500 mt-2'>
@@ -78,7 +78,7 @@ const page = () => {
               We use cookies and similar technologies to:
             </p>
             <ul className='list-disc list-inside mt-2 text-sm text-gray-500 '>
-              <li>Maintain login sessions (via Appwrite and Firebase Authentication)</li>
+              <li>Maintain login sessions via Supabase Authentication</li>
               <li>Analyze traffic and user behavior (Google Analytics, Umami)</li>
               <li>Store user preferences for a better experience</li>
 
@@ -94,11 +94,9 @@ const page = () => {
               We may use third-party services that collect, process, and store your data:
             </p>
             <ul className='list-disc list-inside mt-2 text-sm text-gray-500 '>
-              <li>Appwrite – Backend, database, and authentication</li>
-              <li>Firebase Authentication – Secure login and identity management</li>
-              <li>Google Analytics – Website analytics and traffic insights</li>
-              <li>Umami – Privacy-focused analytics</li>
-
+              <li>Supabase - backend, database, storage, and authentication</li>
+              <li>Google Analytics - website analytics and traffic insights</li>
+              <li>Umami - privacy-focused analytics</li>
             </ul>
             <p className='text-sm mt-2 text-gray-500'>These services have their own privacy policies and we encourage you to review them.</p>
           </div>

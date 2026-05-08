@@ -20,7 +20,8 @@ const Page = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const tabFromUrl = searchParams.get("tab");
-  const [activeTab, setActiveTab] = useState(tabFromUrl || "your-list");
+  const [selectedTab, setSelectedTab] = useState("your-list");
+  const activeTab = tabFromUrl || selectedTab;
 
   const { user } = useAuthContext();
   const [bookmarks, setBookmarks] = useState([]);
@@ -35,16 +36,9 @@ const Page = () => {
     return data.publicUrl;
   };
 
-  useEffect(() => {
-    if (tabFromUrl) {
-      setActiveTab(tabFromUrl);
-    }
-  }, [tabFromUrl]);
-
   // 🔹 Fetch Data
   useEffect(() => {
     if (!user) {
-      setLoading(false);
       return;
     }
 
@@ -128,7 +122,7 @@ const Page = () => {
         <div className="flex gap-8 mb-8 border-b border-gray-100">
           <button
             onClick={() => {
-              setActiveTab("your-list");
+              setSelectedTab("your-list");
               router.push("/library?tab=your-list");
             }}
             className={`pb-4 text-[15px] font-medium transition-colors cursor-pointer relative ${activeTab === "your-list" ? "text-black" : "text-gray-500 hover:text-black"
@@ -142,7 +136,7 @@ const Page = () => {
 
           <button
             onClick={() => {
-              setActiveTab("watch-history");
+              setSelectedTab("watch-history");
               router.push("/library?tab=watch-history");
             }}
             className={`pb-4 text-[15px] font-medium transition-colors cursor-pointer relative ${activeTab === "watch-history" ? "text-black" : "text-gray-500 hover:text-black"

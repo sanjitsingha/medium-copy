@@ -11,7 +11,6 @@ const YourReadingLIst = () => {
 
   useEffect(() => {
     if (!user) {
-      setLoading(false);
       return;
     }
 

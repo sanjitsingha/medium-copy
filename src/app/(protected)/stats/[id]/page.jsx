@@ -240,9 +240,11 @@ export default function AnalyticsPage() {
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2">
                         {item.source !== 'Direct / Unknown' && (
-                          <img
+                          <Image
                             src={`https://www.google.com/s2/favicons?domain=${item.source}&sz=32`}
                             alt=""
+                            width={16}
+                            height={16}
                             className="w-4 h-4 rounded-sm"
                             onError={(e) => { e.target.style.display = 'none'; }}
                           />

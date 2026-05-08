@@ -17,7 +17,7 @@ const SignIn = ({ open, onClose, children }) => {
     };
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
-  }, []);
+  }, [onClose]);
 
   if (!open) return null;
 
@@ -84,7 +84,7 @@ const SignIn = ({ open, onClose, children }) => {
               </p>
 
               <p className="text-[11px] mt-6 text-center text-gray-500 max-w-[280px]">
-                By clicking "Sign in", you accept Medium's Terms of Service and
+                By clicking &quot;Sign in&quot;, you accept Medium&apos;s Terms of Service and
                 Privacy Policy.
               </p>
             </div>

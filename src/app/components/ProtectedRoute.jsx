@@ -12,7 +12,7 @@ export default function ProtectedRoute({ children }) {
     if (!loading && !user) {
       router.push("/signin");
     }
-  }, [loading, user]);
+  }, [loading, user, router]);
 
   if (loading) {
     return (

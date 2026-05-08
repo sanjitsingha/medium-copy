@@ -5,7 +5,6 @@ import React, { useState, useRef, useEffect } from "react";
 import { useAuthContext } from "@/context/AuthContext";
 import { logoutUser } from "@/lib/logout";
 import { useRouter } from "next/navigation";
-import { storage } from "@/lib/appwrite";
 import Image from "next/image";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -51,13 +50,6 @@ const [profile, setProfile] = useState(null)
 
 
 // console.log("USER PROFILE:", profile)
-
-
-  const getAvatarUrl = () => {
-    if (!user?.prefs?.avatar) return "/default-avatar.png";
-    return storage.getFileView("article-images", user.prefs.avatar);
-  };
-
 
 
   // const handleLogout = async () => {
@@ -152,8 +144,10 @@ const [profile, setProfile] = useState(null)
                 </Link>
 
                 <Link href="/profile">
-                  <img
+                  <Image
                     src={profile?.avatar || "/default-avatar.png"}
+                    width={32}
+                    height={32}
                     className="w-8 h-8 p-[2px]  border-primary border  rounded-full object-cover"
                     alt="avatar"
                   />

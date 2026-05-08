@@ -36,7 +36,7 @@ const CreateAccount = ({ onBack }) => {
           </p>
           <div className="w-full flex items-center justify-center">
             <p className="text-[11px] text-center mt-6  text-gray-500 max-w-[280px]">
-              By clicking "Sign in", you accept Medium's Terms of Service and
+              By clicking &quot;Sign in&quot;, you accept Medium&apos;s Terms of Service and
               Privacy Policy.
             </p>
           </div>

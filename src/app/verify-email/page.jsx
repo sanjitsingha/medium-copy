@@ -1,52 +1,49 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { account } from "@/lib/appwrite";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function VerifyPending() {
   const router = useRouter();
-
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
   const [cooldown, setCooldown] = useState(0);
   const [email, setEmail] = useState("");
 
-  // ✅ Get user email + auto redirect if already verified
   useEffect(() => {
     const checkUser = async () => {
-      try {
-        const user = await account.get();
+      const { data, error } = await supabase.auth.getUser();
+      if (error || !data.user) return;
 
-        setEmail(user.email);
+      setEmail(data.user.email || "");
 
-        // ✅ already verified → redirect
-        if (user.emailVerification) {
-          router.push("/");
-        }
-      } catch (err) {
-        console.error(err);
+      if (data.user.email_confirmed_at) {
+        router.push("/");
       }
     };
 
     checkUser();
-  }, []);
+  }, [router]);
 
-  // ✅ Resend verification email
   const handleResend = async () => {
-    if (cooldown > 0) return;
+    if (cooldown > 0 || !email) return;
 
     try {
       setLoading(true);
       setMsg("");
 
-      await account.createVerification(
-        "http://localhost:3000/verify-email"
-      );
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
 
-      setMsg("Verification email sent again 📩");
+      if (error) throw error;
 
-      // ✅ cooldown start (30 sec)
+      setMsg("Verification email sent again.");
       setCooldown(30);
       const timer = setInterval(() => {
         setCooldown((prev) => {
@@ -57,7 +54,6 @@ export default function VerifyPending() {
           return prev - 1;
         });
       }, 1000);
-
     } catch (err) {
       console.error(err);
       setMsg("Failed to resend email");
@@ -68,19 +64,13 @@ export default function VerifyPending() {
 
   return (
     <div className="h-screen flex flex-col items-center justify-center text-center px-6">
-      
-      <h1 className="text-2xl font-semibold mb-4">
-        Verify your email 📩
-      </h1>
+      <h1 className="text-2xl font-semibold mb-4">Verify your email</h1>
 
       <p className="text-sm text-black/60 mb-2 max-w-sm">
-        We’ve sent a verification link to:
+        We have sent a verification link to:
       </p>
 
-      {/* ✅ show user email */}
-      <p className="text-sm font-medium mb-6">
-        {email || "your email"}
-      </p>
+      <p className="text-sm font-medium mb-6">{email || "your email"}</p>
 
       <p className="text-xs text-black/50 mb-6 max-w-sm">
         Please check your inbox and click the link to continue.
@@ -88,23 +78,16 @@ export default function VerifyPending() {
 
       <button
         onClick={handleResend}
-        disabled={loading || cooldown > 0}
+        disabled={loading || cooldown > 0 || !email}
         className="bg-black text-white px-6 py-2 rounded-full disabled:opacity-60"
       >
-        {loading
-          ? "Sending..."
-          : cooldown > 0
-          ? `Wait ${cooldown}s`
-          : "Resend Email"}
+        {loading ? "Sending..." : cooldown > 0 ? `Wait ${cooldown}s` : "Resend Email"}
       </button>
 
-      {msg && (
-        <p className="text-sm mt-4 text-green-600">{msg}</p>
-      )}
+      {msg && <p className="text-sm mt-4 text-green-600">{msg}</p>}
 
-      {/* Optional helper text */}
       <p className="text-xs text-black/40 mt-6">
-        Didn’t receive the email? Check spam folder.
+        Did not receive the email? Check your spam folder.
       </p>
     </div>
   );

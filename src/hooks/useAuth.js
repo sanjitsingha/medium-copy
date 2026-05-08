@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { account } from "@/lib/appwrite";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function useAuth() {
   const [user, setUser] = useState(null);
@@ -9,12 +9,8 @@ export default function useAuth() {
 
   useEffect(() => {
     async function getUser() {
-      try {
-        const response = await account.get();
-        setUser(response);
-      } catch (err) {
-        setUser(null);
-      }
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user || null);
       setLoading(false);
     }
 

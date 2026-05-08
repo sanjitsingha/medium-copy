@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { PencilIcon } from "@heroicons/react/24/outline";
 import { supabase } from "@/lib/supabaseClient";
 import { logout } from "../../../../services/authService";
+import Image from "next/image";
 
 const Page = () => {
   const router = useRouter();
@@ -249,6 +250,7 @@ const Page = () => {
   };
 
   // ── UI ──
+  if (loading) return null;
   if (!user) return null;
 
   return (
@@ -265,9 +267,11 @@ const Page = () => {
                 <p className="text-sm text-gray-500">Your profile picture will appear on your profile page.</p>
               </div>
               <div className="relative cursor-pointer group ml-4 shrink-0" onClick={() => setAvatarModalOpen(true)}>
-                <img
+                <Image
                   src={profile?.avatar || "/default-avatar.jpg"}
                   alt="Profile"
+                  width={88}
+                  height={88}
                   className="w-[88px] h-[88px] rounded-full object-cover group-hover:opacity-80 transition-opacity bg-gray-100"
                 />
                 <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">

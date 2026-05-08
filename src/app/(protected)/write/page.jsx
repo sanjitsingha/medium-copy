@@ -6,6 +6,7 @@ import { useAuthContext } from "@/context/AuthContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { XCircleIcon } from "@heroicons/react/24/outline";
+import Image from "next/image";
 
 /* ─────────────────────────────────────────
    SEO HELPERS
@@ -102,7 +103,12 @@ export default function CreatePage() {
   useEffect(() => {
     if (draftId && user) {
       const fetchDraft = async () => {
-        const { data, error } = await supabase.from("articles").select("*").eq("id", draftId).single();
+        const { data, error } = await supabase
+          .from("articles")
+          .select("*")
+          .eq("id", draftId)
+          .eq("author_id", user.id)
+          .single();
         if (data) {
           setTitle(data.title || "");
           if (titleRef.current) titleRef.current.value = data.title || "";
@@ -299,7 +305,11 @@ export default function CreatePage() {
 
       let error;
       if (draftId) {
-        const { error: updateError } = await supabase.from("articles").update(payload).eq("id", draftId);
+        const { error: updateError } = await supabase
+          .from("articles")
+          .update(payload)
+          .eq("id", draftId)
+          .eq("author_id", user.id);
         error = updateError;
       } else {
         const { error: insertError } = await supabase.from("articles").insert([payload]);
@@ -347,7 +357,11 @@ export default function CreatePage() {
 
       let error;
       if (draftId) {
-        const { error: updateError } = await supabase.from("articles").update(payload).eq("id", draftId);
+        const { error: updateError } = await supabase
+          .from("articles")
+          .update(payload)
+          .eq("id", draftId)
+          .eq("author_id", user.id);
         error = updateError;
       } else {
         const { error: insertError } = await supabase.from("articles").insert([payload]);
@@ -468,7 +482,7 @@ export default function CreatePage() {
           )}
           {cover && (
             <div className="relative rounded-lg overflow-hidden">
-              <img src={cover} alt="Cover" className="w-full max-h-[400px] object-cover" />
+              <Image src={cover} alt="Cover" width={768} height={400} unoptimized className="w-full max-h-[400px] object-cover" />
               <button className="absolute top-4 right-4 text-sm px-3 py-1 cursor-pointer opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity bg-black/10 backdrop-blur-sm rounded-full" onClick={() => setCover(null)}>
                 <XCircleIcon className="size-5 text-white sm:text-gray-900" />
               </button>

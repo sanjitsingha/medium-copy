@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { PiThumbsUp, PiThumbsUpFill } from "react-icons/pi";
 import { IoBookmarkOutline, IoBookmark } from "react-icons/io5";
 import { useAuthContext } from "@/context/AuthContext";
@@ -39,7 +40,9 @@ function StoriesCardHorizontal({
       {/* ================= AUTHOR ================= */}
       <div className="flex items-center gap-3 text-xs text-gray-500">
         <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-200">
-          {avatarPhoto && <img src={avatarPhoto} alt="author" />}
+          {avatarPhoto && (
+            <Image src={avatarPhoto} alt="author" width={24} height={24} className="w-full h-full object-cover" />
+          )}
         </div>
 
         <p>
@@ -74,9 +77,11 @@ function StoriesCardHorizontal({
           </div>
 
           {imageUrl && (
-            <img
+            <Image
               src={imageUrl}
               alt={article.title}
+              width={180}
+              height={120}
               className="w-[130px] h-[70px] md:w-[180px] md:h-[120px] object-cover rounded"
             />
           )}

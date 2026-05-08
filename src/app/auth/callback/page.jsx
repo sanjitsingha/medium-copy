@@ -49,7 +49,7 @@ export default function AuthCallback() {
     };
 
     handleUser();
-  }, []);
+  }, [router]);
 
   return <p>Logging you in...</p>;
 }

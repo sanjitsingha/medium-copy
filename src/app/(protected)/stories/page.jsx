@@ -16,12 +16,13 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 
 
-const page = () => {
+const Page = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
   const tabFromUrl = searchParams.get("tab");
-  const [activeTab, setActiveTab] = useState(tabFromUrl || "drafts");
+  const [selectedTab, setSelectedTab] = useState("drafts");
+  const activeTab = tabFromUrl || selectedTab;
   const { user } = useAuthContext();
   const [drafts, setDrafts] = useState([]);
   const [publishedArticles, setPublishedArticles] = useState([]);
@@ -36,12 +37,6 @@ const page = () => {
 
 
   const [activeMenu, setActiveMenu] = useState(null);
-
-  useEffect(() => {
-    if (tabFromUrl) {
-      setActiveTab(tabFromUrl);
-    }
-  }, [tabFromUrl]);
 
   // ✅ close dropdown on outside click
   useEffect(() => {
@@ -86,7 +81,11 @@ const page = () => {
     if (!window.confirm("Are you sure you want to delete this story? This action cannot be undone.")) return;
 
     try {
-      const { error } = await supabase.from("articles").delete().eq("id", id);
+      const { error } = await supabase
+        .from("articles")
+        .delete()
+        .eq("id", id)
+        .eq("author_id", user.id);
       if (error) throw error;
 
       if (status === "draft") {
@@ -105,7 +104,8 @@ const page = () => {
       const { error } = await supabase
         .from("articles")
         .update({ status: "draft" })
-        .eq("id", article.id);
+        .eq("id", article.id)
+        .eq("author_id", user.id);
 
       if (error) throw error;
 
@@ -161,7 +161,7 @@ const page = () => {
         <div className="flex gap-8 mb-8 border-b border-gray-100">
           <button
             onClick={() => {
-              setActiveTab("drafts");
+              setSelectedTab("drafts");
               router.push("/stories?tab=drafts");
             }}
             className={`pb-4 text-[15px] font-medium transition-colors cursor-pointer relative ${activeTab === "drafts"
@@ -177,7 +177,7 @@ const page = () => {
 
           <button
             onClick={() => {
-              setActiveTab("published");
+              setSelectedTab("published");
               router.push("/stories?tab=published");
             }}
             className={`pb-4 text-[15px] font-medium transition-colors cursor-pointer relative ${activeTab === "published"
@@ -296,7 +296,7 @@ const page = () => {
           ) : activeTab === "published" ? (
             publishedArticles.length === 0 ? (
               <div className="py-16 text-center">
-                <p className="text-black font-medium text-lg mb-2">You haven't published any stories yet.</p>
+                <p className="text-black font-medium text-lg mb-2">You have not published any stories yet.</p>
                 <p className="text-gray-500 text-[15px]">Your published stories will appear here.</p>
               </div>
             ) : (
@@ -394,4 +394,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;

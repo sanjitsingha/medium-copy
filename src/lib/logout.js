@@ -1,5 +1,6 @@
-import { account } from "@/lib/appwrite";
+import { supabase } from "@/lib/supabaseClient";
 
 export async function logoutUser() {
-  return await account.deleteSession("current");
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
 }

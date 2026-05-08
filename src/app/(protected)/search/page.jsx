@@ -101,7 +101,7 @@ const Page = () => {
           <div className="mt-6">
             <p className="text-[26px] md:text-[32px] text-black font-creato">
               Search results for{" "}
-              <span className="text-gray-600">"{query}"</span>
+              <span className="text-gray-600">&quot;{query}&quot;</span>
             </p>
           </div>
         )}
@@ -155,7 +155,7 @@ const Page = () => {
 
             {!loading && articles.length === 0 && (
               <p className="text-sm text-gray-500">
-                No stories found for "{query}"
+                No stories found for &quot;{query}&quot;
               </p>
             )}
 

@@ -29,7 +29,7 @@ export default function SignInPage() {
       </p>
 
       <p className="text-[12px] text-center  text-black/60 mt-6">
-        By clicking "Sign in", you accept Vichento's Terms of Service and Privacy
+        By clicking &quot;Sign in&quot;, you accept Vichento&apos;s Terms of Service and Privacy
         Policy.
       </p>
     </div>

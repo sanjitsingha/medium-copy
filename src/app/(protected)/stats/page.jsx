@@ -68,6 +68,7 @@ export default function StatsPage() {
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');
   const [showCustomPicker, setShowCustomPicker] = useState(false);
+  const [chartData, setChartData] = useState([]);
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
 
@@ -120,6 +121,53 @@ export default function StatsPage() {
     const totalViews = enriched.reduce((s, a) => s + a.vCount, 0);
     const totalLikes = enriched.reduce((s, a) => s + a.lCount, 0);
 
+    // ── Generate Chart Data ──
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const now = new Date();
+    const publishedIds = published.map(a => a.id);
+
+    if (activeRange === '7d' && publishedIds.length > 0) {
+      const last7 = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        d.setHours(0, 0, 0, 0);
+        const dayStart = d.toISOString();
+        const dayEnd = new Date(d.getTime() + 24 * 60 * 60 * 1000 - 1).toISOString();
+        last7.push({ 
+          name: days[d.getDay()], 
+          views: 0,
+          start: dayStart,
+          end: dayEnd
+        });
+      }
+
+      // Fetch daily counts in parallel
+      await Promise.all(last7.map(async (slot) => {
+        const { count } = await supabase
+          .from('views')
+          .select('*', { count: 'exact', head: true })
+          .in('article_id', publishedIds)
+          .gte('created_at', slot.start)
+          .lte('created_at', slot.end);
+        slot.views = count || 0;
+      }));
+
+      setChartData(last7);
+    } else {
+      // For other ranges, just show total views on the last day as a fallback
+      const fallback = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        fallback.push({ name: days[d.getDay()], views: 0 });
+      }
+      if (fallback.length > 0) {
+        fallback[fallback.length - 1].views = totalViews;
+      }
+      setChartData(fallback);
+    }
+
     setPublishedArticles(enriched);
     setDraftArticles(drafts);
     setStats({ totalViews, totalLikes });
@@ -127,7 +175,11 @@ export default function StatsPage() {
   }, [user, activeRange, customFrom, customTo]);
 
   useEffect(() => {
-    fetchAllArticles();
+    const timer = window.setTimeout(() => {
+      fetchAllArticles();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, [fetchAllArticles]);
 
   // ── Helpers ────────────────────────────────────────────────────────────────
@@ -153,17 +205,6 @@ export default function StatsPage() {
       alert("Link copied to clipboard");
     }
   };
-
-  // Mock chart data — replace with real daily aggregation if you add a views_daily table
-  const chartData = [
-    { name: 'Mon', views: Math.floor(Math.random() * 50) + 10 },
-    { name: 'Tue', views: Math.floor(Math.random() * 50) + 20 },
-    { name: 'Wed', views: Math.floor(Math.random() * 50) + 15 },
-    { name: 'Thu', views: Math.floor(Math.random() * 50) + 30 },
-    { name: 'Fri', views: Math.floor(Math.random() * 50) + 40 },
-    { name: 'Sat', views: Math.floor(Math.random() * 50) + 60 },
-    { name: 'Sun', views: stats.totalViews > 0 ? stats.totalViews : 80 },
-  ];
 
   const latestPublished = publishedArticles[0];
 
@@ -389,7 +430,7 @@ export default function StatsPage() {
                     </div>
                   </div>
                 )) : (
-                  <p className="text-[14px] text-gray-500 text-center py-4">You haven't published any articles yet.</p>
+                  <p className="text-[14px] text-gray-500 text-center py-4">You have not published any articles yet.</p>
                 )}
               </div>
             </section>

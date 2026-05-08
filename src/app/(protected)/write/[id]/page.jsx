@@ -6,6 +6,7 @@ import { useAuthContext } from "@/context/AuthContext";
 import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { XCircleIcon } from "@heroicons/react/24/outline";
+import Image from "next/image";
 
 /* ─────────────────────────────────────────
    SEO HELPERS
@@ -98,10 +99,15 @@ export default function EditCreatePage() {
   const setSeoField = (k, v) => setSeo(s => ({ ...s, [k]: v }));
 
   useEffect(() => {
-    if (!id) return;
+    if (!id || !user?.id) return;
     const loadArticle = async () => {
       try {
-        const { data, error } = await supabase.from("articles").select("*").eq("id", id).single();
+        const { data, error } = await supabase
+          .from("articles")
+          .select("*")
+          .eq("id", id)
+          .eq("author_id", user.id)
+          .single();
         if (error) throw error;
 
         setTitle(data.title || "");
@@ -132,7 +138,7 @@ export default function EditCreatePage() {
       }
     };
     loadArticle();
-  }, [id]);
+  }, [id, user?.id]);
 
   const showToast = (m, t = "ok") => {
     setToast({ msg: m, type: t, show: true });
@@ -302,7 +308,11 @@ export default function EditCreatePage() {
 
       let error;
       if (id) {
-        const { error: updateError } = await supabase.from("articles").update(payload).eq("id", id);
+        const { error: updateError } = await supabase
+          .from("articles")
+          .update(payload)
+          .eq("id", id)
+          .eq("author_id", user.id);
         error = updateError;
       } else {
         const { error: insertError } = await supabase.from("articles").insert([payload]);
@@ -349,7 +359,11 @@ export default function EditCreatePage() {
 
       let error;
       if (id) {
-        const { error: updateError } = await supabase.from("articles").update(payload).eq("id", id);
+        const { error: updateError } = await supabase
+          .from("articles")
+          .update(payload)
+          .eq("id", id)
+          .eq("author_id", user.id);
         error = updateError;
       } else {
         payload.published_at = new Date().toISOString();
@@ -436,7 +450,7 @@ export default function EditCreatePage() {
           )}
           {cover && (
             <div className="relative rounded-lg overflow-hidden">
-              <img src={cover} alt="Cover" className="w-full max-h-[400px] object-cover" />
+              <Image src={cover} alt="Cover" width={768} height={400} unoptimized className="w-full max-h-[400px] object-cover" />
               <button className="absolute top-4 right-4 text-sm px-3 py-1 cursor-pointer opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity bg-black/10 backdrop-blur-sm rounded-full" onClick={() => setCover(null)}>
                 <XCircleIcon className="size-5 text-white sm:text-gray-900" />
               </button>
