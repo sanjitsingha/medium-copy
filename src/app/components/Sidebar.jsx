@@ -32,7 +32,7 @@ export default function Sidebar() {
     <aside className="hidden md:flex flex-col sticky top-[64px] w-60 h-[calc(100vh-64px)]  py-8">
       <nav className="flex flex-col gap-2 px-6">
        {menu.map((item) => {
-  const active = pathname.endsWith(item.href);
+  const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
   const Icon = active ? item.solid : item.outline;
 
   return (
