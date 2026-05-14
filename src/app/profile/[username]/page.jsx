@@ -173,18 +173,29 @@ const Page = () => {
 
   // ── Update Bio ──
   const handleUpdateBio = async () => {
+    if (!user) return;
     setBioLoading(true);
     setBioMsg(null);
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("users")
         .update({ bio: bioText })
-        .eq("id", user.id);
+        .eq("id", user.id)
+        .select()
+        .single();
+
       if (error) throw error;
-      await refreshUser();
-      setBioMsg({ type: "success", text: "Bio updated." });
-      setTimeout(() => { setBioModalOpen(false); setBioMsg(null); }, 900);
+      
+      if (data) {
+        setProfile(data);
+        setBioMsg({ type: "success", text: "Bio updated." });
+        setTimeout(() => { 
+          setBioModalOpen(false); 
+          setBioMsg(null); 
+        }, 900);
+      }
     } catch (err) {
+      console.error("Error updating bio:", err);
       setBioMsg({ type: "error", text: err.message || "Update failed" });
     } finally {
       setBioLoading(false);
@@ -359,7 +370,10 @@ const Page = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between py-6 border-b border-gray-200 cursor-pointer group" onClick={() => setDisplayNameModal(true)}>
+              <div className="flex items-center justify-between py-6 border-b border-gray-200 cursor-pointer group" onClick={() => {
+                setDisplayName(profile?.name || "");
+                setDisplayNameModal(true);
+              }}>
                 <div className="space-y-1 flex-1 pr-4">
                   <h2 className="text-[15px] font-medium text-black">Name</h2>
                   <p className="text-sm text-gray-500 line-clamp-1">{profile?.name || "—"}</p>
@@ -367,7 +381,10 @@ const Page = () => {
                 <p className="text-sm text-gray-400 group-hover:text-black transition-colors">Edit</p>
               </div>
 
-              <div className="flex items-center justify-between py-6 border-b border-gray-200 cursor-pointer group" onClick={() => setUsernameModalOpen(true)}>
+              <div className="flex items-center justify-between py-6 border-b border-gray-200 cursor-pointer group" onClick={() => {
+                setNewUsername(profile?.username || "");
+                setUsernameModalOpen(true);
+              }}>
                 <div className="space-y-1 flex-1 pr-4">
                   <h2 className="text-[15px] font-medium text-black">Username</h2>
                   <p className="text-sm text-gray-500 line-clamp-1">{profile?.username || "Add a username"}</p>
@@ -375,7 +392,10 @@ const Page = () => {
                 <p className="text-sm text-gray-400 group-hover:text-black transition-colors">Edit</p>
               </div>
 
-              <div className="flex items-center justify-between py-6 border-b border-gray-200 cursor-pointer group" onClick={() => setBioModalOpen(true)}>
+              <div className="flex items-center justify-between py-6 border-b border-gray-200 cursor-pointer group" onClick={() => {
+                setBioText(profile?.bio || "");
+                setBioModalOpen(true);
+              }}>
                 <div className="space-y-1 flex-1 pr-4">
                   <h2 className="text-[15px] font-medium text-black">Short bio</h2>
                   <p className="text-sm text-gray-500 line-clamp-2">{profile?.bio || "Add a short bio"}</p>
@@ -403,7 +423,10 @@ const Page = () => {
                 <p className="text-sm text-gray-400 group-hover:text-black transition-colors">Edit</p>
               </div>
 
-              <div className="flex items-center justify-between py-6 border-b border-gray-200 cursor-pointer group" onClick={() => setPreferencesOpen(true)}>
+              <div className="flex items-center justify-between py-6 border-b border-gray-200 cursor-pointer group" onClick={() => {
+                setSelectedInterests(Array.isArray(profile?.interests) ? profile.interests : []);
+                setPreferencesOpen(true);
+              }}>
                 <div className="space-y-1 flex-1 pr-4">
                   <h2 className="text-[15px] font-medium text-black">Topics of Interest</h2>
                   <p className="text-sm text-gray-500">Manage your reading preferences</p>
