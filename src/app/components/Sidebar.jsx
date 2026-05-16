@@ -39,14 +39,17 @@ export default function Sidebar() {
     <Link
       key={item.name}
       href={item.href}
-      className={`flex items-center gap-3 px-4 py-2 rounded-md text-[16px]
+      className={`relative flex items-center gap-3 px-6 py-2.5 text-[15px] transition-all
         ${
           active
-            ? "bg-gray-100 text-secondary"
-            : "text-black/70 hover:bg-gray-100"
+            ? "text-black"
+            : "text-black/50 hover:text-black"
         }
       `}
     >
+      {active && (
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-5 bg-black rounded-full" />
+      )}
       <Icon className="w-5 h-5" />
       {item.name}
     </Link>

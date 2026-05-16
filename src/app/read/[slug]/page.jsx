@@ -15,6 +15,7 @@ import { sanitizeHtml } from "@/lib/sanitizeHtml";
 import { HiOutlineDotsHorizontal } from "react-icons/hi";
 import { FaRegComment } from "react-icons/fa6";
 import useUserActions from "@/hooks/useUserActions";
+import RelatedArticles from "@/app/components/RelatedArticles";
 
 const sourceSerif = localFont({
   src: [
@@ -98,7 +99,9 @@ export default function ReadArticlePage() {
           `
             *,
             users (
+              id,
               name,
+              username,
               avatar
             )
           `
@@ -372,17 +375,20 @@ export default function ReadArticlePage() {
       </p>
 
       <div className="flex justify-between mt-6 mb-2 border-t border-b border-gray-100 py-3">
-        <div className="text-gray-500 text-[15px] flex gap-3 items-center">
+        <Link 
+          href={`/profile/${article.users?.username || article.author_id}`}
+          className="text-gray-500 text-[15px] flex gap-3 items-center group"
+        >
           <Image
             src={avatar}
             width={38}
             height={38}
             title={authorName}
             alt={authorName}
-            className="rounded-full object-cover border border-gray-100"
+            className="rounded-full object-cover border border-gray-100 group-hover:opacity-80 transition-opacity"
           />
           <div className="flex flex-col">
-            <p className="text-black font-medium leading-tight">{authorName}</p>
+            <p className="text-black font-medium leading-tight group-hover:text-gray-600 transition-colors">{authorName}</p>
             <div className="flex items-center gap-2 text-[12px] text-gray-400">
               <p>{readingTime} min read</p>
               <span>-</span>
@@ -395,7 +401,7 @@ export default function ReadArticlePage() {
               </p>
             </div>
           </div>
-        </div>
+        </Link>
       </div>
 
       <div className="md:static fixed bottom-0 left-0 w-full md:w-auto z-50 md:z-auto bg-white md:bg-transparent border-t md:border-t-0 md:border-b border-gray-100 py-3 md:py-2 px-6 md:px-0 md:mb-8 transition-all">
@@ -443,18 +449,6 @@ export default function ReadArticlePage() {
             />
             Share
           </button>
-
-          <button
-            title="responses"
-            onClick={scrollToComments}
-            className="cursor-pointer transition-transform active:scale-95 flex items-center gap-2 text-sm text-gray-500"
-          >
-            <FaRegComment
-              size={19}
-              className="text-gray-500 hover:text-black transition-colors"
-            />
-            {comments.length}
-          </button>
         </div>
       </div>
 
@@ -491,169 +485,10 @@ export default function ReadArticlePage() {
 
       <div className="py-10">
         <hr className="my-6" />
-        <p className="text-xl font-semibold mb-8">Related Stories</p>
-        {/* Placeholder for related stories */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-40">
-          <div className="h-40 bg-gray-100 rounded-lg animate-pulse" />
-          <div className="h-40 bg-gray-100 rounded-lg animate-pulse" />
-        </div>
+        <p className="text-xl font-semibold mb-8 text-black">Related Stories</p>
+        <RelatedArticles categories={article.categories} currentId={article.id} />
       </div>
 
-      {/* Comments Section */}
-      <div ref={commentsRef} className="mt-12 border-t border-gray-100 pt-10 pb-20">
-        <h3 className="text-xl font-bold text-black mb-8">Responses ({comments.length})</h3>
-
-        {/* Add Comment Input */}
-        <div className="flex gap-4 mb-10 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07)] p-5 rounded-lg border border-gray-50">
-          <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 shrink-0 relative">
-            <Image
-              src={profile?.avatar || "/default-avatar.png"}
-              fill={true}
-              alt="user"
-              unoptimized
-              className="object-cover"
-            />
-          </div>
-          <div className="flex-1">
-            <textarea
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              placeholder="What are your thoughts?"
-              className="w-full text-sm focus:outline-none resize-none min-h-[60px] text-black placeholder:text-gray-400"
-            />
-            <div className="flex justify-end mt-2">
-              <button
-                onClick={handlePostComment}
-                disabled={isSubmitting || !commentText.trim()}
-                className="bg-black text-white px-4 py-1.5 rounded-full text-[13px] font-medium hover:bg-gray-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? "Posting..." : "Respond"}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Responses List */}
-        <div className="space-y-8">
-          {comments.filter(c => !c.parent_id).map((comment) => {
-            const commentLikes = comment.comment_likes || [];
-            const isCommentLiked = commentLikes.some(l => l.user_id === user?.id);
-
-            return (
-              <div key={comment.id} className="relative pl-8 pb-12 group last:pb-0">
-                {/* Thread Line */}
-                <div className="absolute left-0 top-2 bottom-0 w-[1.5px] bg-gray-100 group-hover:bg-gray-200 transition-colors rounded-full" />
-
-                {/* Dot on the line */}
-                <div className="absolute left-[-3.5px] top-2 w-2 h-2 rounded-full bg-gray-200 border-2 border-white group-hover:bg-black transition-colors" />
-
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 relative ring-2 ring-white">
-                      <Image
-                        src={comment.users?.avatar || "/default-avatar.jpg"}
-                        fill={true}
-                        alt="author"
-                        className="object-cover"
-                        unoptimized
-                      />
-                    </div>
-                    <div>
-                      <p className="text-[13px] font-bold text-black">{comment.users?.name || "Anonymous"}</p>
-                      <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wider">
-                        {new Date(comment.created_at).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                  {comment.user_id === user?.id && (
-                    <div className="relative">
-                      <button
-                        onClick={() => setMenuOpenId(menuOpenId === comment.id ? null : comment.id)}
-                        className="text-gray-300 hover:text-black transition-colors"
-                      >
-                        <HiOutlineDotsHorizontal size={18} />
-                      </button>
-
-                      {menuOpenId === comment.id && (
-                        <div className="absolute right-0 mt-2 w-32 bg-white shadow-xl border border-gray-100 rounded-lg py-1.5 z-20 overflow-hidden">
-                          <button
-                            onClick={() => {
-                              setEditingId(comment.id);
-                              setEditText(comment.content);
-                              setMenuOpenId(null);
-                            }}
-                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => {
-                              handleDeleteComment(comment.id);
-                              setMenuOpenId(null);
-                            }}
-                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {editingId === comment.id ? (
-                  <div className="mt-2">
-                    <textarea
-                      value={editText}
-                      onChange={(e) => setEditText(e.target.value)}
-                      className="w-full text-[15px] text-gray-700 leading-relaxed border border-gray-200 rounded-lg p-3 focus:outline-none focus:border-black min-h-[100px] resize-none"
-                    />
-                    <div className="flex justify-end gap-3 mt-3">
-                      <button
-                        onClick={() => setEditingId(null)}
-                        className="text-sm text-gray-500 hover:text-black font-medium"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={() => handleUpdateComment(comment.id)}
-                        disabled={isSubmitting || !editText.trim()}
-                        className="bg-black text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
-                      >
-                        {isSubmitting ? "Saving..." : "Save Changes"}
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-[15px] text-gray-700 leading-relaxed max-w-[650px]">
-                    {comment.content}
-                  </p>
-                )}
-
-                <div className="flex items-center gap-6 mt-5">
-                  <button
-                    onClick={() => toggleCommentLike(comment.id, isCommentLiked)}
-                    className="flex items-center gap-1.5 text-[13px] text-gray-400 hover:text-black transition-colors group/like"
-                  >
-                    {isCommentLiked ? (
-                      <AiFillLike size={18} className="text-black" />
-                    ) : (
-                      <AiOutlineLike size={18} className="group-active/like:scale-125 transition-transform" />
-                    )}
-                    <span className="font-medium">{commentLikes.length}</span>
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-          {comments.length === 0 && !loading && (
-            <p className="text-center text-gray-400 py-10 italic">No responses yet. Be the first to share your thoughts.</p>
-          )}
-        </div>
-      </div>
     </div>
 
   );

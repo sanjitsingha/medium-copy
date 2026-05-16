@@ -68,6 +68,7 @@ export default function Page() {
             users (
               id,
               name,
+              username,
               avatar
             )
           `)
@@ -87,6 +88,7 @@ export default function Page() {
         const formatted = (data || []).map((article) => ({
           ...article,
           author_name: article.users?.name || "Unknown",
+          author_username: article.users?.username || article.users?.id,
           author_avatar: article.users?.avatar
             ? getImageUrl(article.users.avatar)
             : null,

@@ -39,17 +39,19 @@ function StoriesCardHorizontal({
 
       {/* ================= AUTHOR ================= */}
       <div className="flex items-center gap-3 text-xs text-gray-500">
-        <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-200">
-          {avatarPhoto && (
-            <Image src={avatarPhoto} alt="author" width={24} height={24} className="w-full h-full object-cover" />
-          )}
-        </div>
+        <Link href={`/profile/${article.author_username || article.author_id}`} className="flex items-center gap-3 group">
+          <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-200">
+            {avatarPhoto && (
+              <Image src={avatarPhoto} alt="author" width={24} height={24} className="w-full h-full object-cover group-hover:opacity-80 transition-opacity" />
+            )}
+          </div>
 
-        <p>
-          {user?.id === article.author_id
-            ? user?.user_metadata?.name || "You"
-            : article.author_name}
-        </p>
+          <p className="group-hover:text-black transition-colors font-medium">
+            {user?.id === article.author_id
+              ? user?.user_metadata?.name || "You"
+              : article.author_name}
+          </p>
+        </Link>
 
         <span>·</span>
 

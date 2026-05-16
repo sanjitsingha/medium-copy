@@ -40,6 +40,7 @@ export default function ForYou() {
             users (
               id,
               name,
+              username,
               avatar
             )
           `
@@ -62,6 +63,7 @@ export default function ForYou() {
           (data || []).map((article) => ({
             ...article,
             author_name: article.users?.name || "Unknown",
+            author_username: article.users?.username || article.users?.id,
             author_avatar: article.users?.avatar || null,
             thumbnail: article.cover_image,
           }))
