@@ -161,6 +161,7 @@ const Page = () => {
   };
 
   const handleUpdateBio = async () => {
+<<<<<<< HEAD
     setBioLoading(true); setBioMsg(null);
     try {
       const { error } = await supabase.from("users").update({ bio: bioText }).eq("id", user.id);
@@ -170,6 +171,35 @@ const Page = () => {
       setTimeout(() => { setBioModalOpen(false); setBioMsg(null); }, 900);
     } catch (err) { setBioMsg({ type: "error", text: err.message || "Update failed" }); }
     finally { setBioLoading(false); }
+=======
+    if (!user) return;
+    setBioLoading(true);
+    setBioMsg(null);
+    try {
+      const { data, error } = await supabase
+        .from("users")
+        .update({ bio: bioText })
+        .eq("id", user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      if (data) {
+        setProfile(data);
+        setBioMsg({ type: "success", text: "Bio updated." });
+        setTimeout(() => { 
+          setBioModalOpen(false); 
+          setBioMsg(null); 
+        }, 900);
+      }
+    } catch (err) {
+      console.error("Error updating bio:", err);
+      setBioMsg({ type: "error", text: err.message || "Update failed" });
+    } finally {
+      setBioLoading(false);
+    }
+>>>>>>> 9c11ff4b8dcaf60db53ded77597031a67b3328a7
   };
 
   const handleUpdateSocials = async () => {
@@ -285,6 +315,7 @@ const Page = () => {
                     <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"><PencilIcon className="w-6 h-6 text-white" /></div>
                   </div>
                 </div>
+<<<<<<< HEAD
                 <div className="flex items-center justify-between py-6 cursor-pointer group" onClick={() => setDisplayNameModal(true)}>
                   <div className="space-y-1 flex-1 pr-4"><h2 className="text-[15px] font-medium text-black">Name</h2><p className="text-sm text-gray-500">{profile.name || "—"}</p></div>
                   <p className="text-sm text-gray-400 group-hover:text-black transition-colors">Edit</p>
@@ -296,6 +327,39 @@ const Page = () => {
                 <div className="flex items-center justify-between py-6 cursor-pointer group" onClick={() => setBioModalOpen(true)}>
                   <div className="space-y-1 flex-1 pr-4"><h2 className="text-[15px] font-medium text-black">Short bio</h2><p className="text-sm text-gray-500 line-clamp-2">{profile.bio || "Add a short bio"}</p></div>
                   <p className="text-sm text-gray-400 group-hover:text-black transition-colors">Edit</p>
+=======
+              </div>
+
+              <div className="flex items-center justify-between py-6 border-b border-gray-200 cursor-pointer group" onClick={() => {
+                setDisplayName(profile?.name || "");
+                setDisplayNameModal(true);
+              }}>
+                <div className="space-y-1 flex-1 pr-4">
+                  <h2 className="text-[15px] font-medium text-black">Name</h2>
+                  <p className="text-sm text-gray-500 line-clamp-1">{profile?.name || "—"}</p>
+                </div>
+                <p className="text-sm text-gray-400 group-hover:text-black transition-colors">Edit</p>
+              </div>
+
+              <div className="flex items-center justify-between py-6 border-b border-gray-200 cursor-pointer group" onClick={() => {
+                setNewUsername(profile?.username || "");
+                setUsernameModalOpen(true);
+              }}>
+                <div className="space-y-1 flex-1 pr-4">
+                  <h2 className="text-[15px] font-medium text-black">Username</h2>
+                  <p className="text-sm text-gray-500 line-clamp-1">{profile?.username || "Add a username"}</p>
+                </div>
+                <p className="text-sm text-gray-400 group-hover:text-black transition-colors">Edit</p>
+              </div>
+
+              <div className="flex items-center justify-between py-6 border-b border-gray-200 cursor-pointer group" onClick={() => {
+                setBioText(profile?.bio || "");
+                setBioModalOpen(true);
+              }}>
+                <div className="space-y-1 flex-1 pr-4">
+                  <h2 className="text-[15px] font-medium text-black">Short bio</h2>
+                  <p className="text-sm text-gray-500 line-clamp-2">{profile?.bio || "Add a short bio"}</p>
+>>>>>>> 9c11ff4b8dcaf60db53ded77597031a67b3328a7
                 </div>
                 <div className="flex items-center justify-between py-6 cursor-pointer group" onClick={() => setSocialsModalOpen(true)}>
                   <div className="space-y-2 flex-1 pr-4"><h2 className="text-[15px] font-medium text-black">Social Handles</h2><div className="flex gap-3">{Object.entries(socials).map(([p,v])=>v && <span key={p} className="text-xs text-gray-400 uppercase">{p}</span>)}</div></div>
@@ -309,9 +373,22 @@ const Page = () => {
                   <div className="space-y-1 flex-1 pr-4"><h2 className="text-[15px] font-medium text-black">Password</h2><p className="text-sm text-gray-500">Update security</p></div>
                   <p className="text-sm text-gray-400 group-hover:text-black transition-colors">Edit</p>
                 </div>
+<<<<<<< HEAD
                 <div className="flex items-center justify-between py-6 cursor-pointer group" onClick={() => setPreferencesOpen(true)}>
                   <div className="space-y-1 flex-1 pr-4"><h2 className="text-[15px] font-medium text-black">Interests</h2><p className="text-sm text-gray-500">Personalize feed</p></div>
                   <p className="text-sm text-gray-400 group-hover:text-black transition-colors">Edit</p>
+=======
+                <p className="text-sm text-gray-400 group-hover:text-black transition-colors">Edit</p>
+              </div>
+
+              <div className="flex items-center justify-between py-6 border-b border-gray-200 cursor-pointer group" onClick={() => {
+                setSelectedInterests(Array.isArray(profile?.interests) ? profile.interests : []);
+                setPreferencesOpen(true);
+              }}>
+                <div className="space-y-1 flex-1 pr-4">
+                  <h2 className="text-[15px] font-medium text-black">Topics of Interest</h2>
+                  <p className="text-sm text-gray-500">Manage your reading preferences</p>
+>>>>>>> 9c11ff4b8dcaf60db53ded77597031a67b3328a7
                 </div>
                 <div className="py-6 flex items-center justify-between"><div className="space-y-1"><h2 className="text-[15px] font-medium text-black">Email</h2><p className="text-sm text-gray-500">{profile.email}</p></div></div>
               </section>
