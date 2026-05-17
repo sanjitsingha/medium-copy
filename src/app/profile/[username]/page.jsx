@@ -161,7 +161,6 @@ const Page = () => {
   };
 
   const handleUpdateBio = async () => {
-<<<<<<< HEAD
     setBioLoading(true); setBioMsg(null);
     try {
       const { error } = await supabase.from("users").update({ bio: bioText }).eq("id", user.id);
@@ -171,35 +170,6 @@ const Page = () => {
       setTimeout(() => { setBioModalOpen(false); setBioMsg(null); }, 900);
     } catch (err) { setBioMsg({ type: "error", text: err.message || "Update failed" }); }
     finally { setBioLoading(false); }
-=======
-    if (!user) return;
-    setBioLoading(true);
-    setBioMsg(null);
-    try {
-      const { data, error } = await supabase
-        .from("users")
-        .update({ bio: bioText })
-        .eq("id", user.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      if (data) {
-        setProfile(data);
-        setBioMsg({ type: "success", text: "Bio updated." });
-        setTimeout(() => { 
-          setBioModalOpen(false); 
-          setBioMsg(null); 
-        }, 900);
-      }
-    } catch (err) {
-      console.error("Error updating bio:", err);
-      setBioMsg({ type: "error", text: err.message || "Update failed" });
-    } finally {
-      setBioLoading(false);
-    }
->>>>>>> 9c11ff4b8dcaf60db53ded77597031a67b3328a7
   };
 
   const handleUpdateSocials = async () => {
@@ -315,7 +285,6 @@ const Page = () => {
                     <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"><PencilIcon className="w-6 h-6 text-white" /></div>
                   </div>
                 </div>
-<<<<<<< HEAD
                 <div className="flex items-center justify-between py-6 cursor-pointer group" onClick={() => setDisplayNameModal(true)}>
                   <div className="space-y-1 flex-1 pr-4"><h2 className="text-[15px] font-medium text-black">Name</h2><p className="text-sm text-gray-500">{profile.name || "—"}</p></div>
                   <p className="text-sm text-gray-400 group-hover:text-black transition-colors">Edit</p>
@@ -327,42 +296,9 @@ const Page = () => {
                 <div className="flex items-center justify-between py-6 cursor-pointer group" onClick={() => setBioModalOpen(true)}>
                   <div className="space-y-1 flex-1 pr-4"><h2 className="text-[15px] font-medium text-black">Short bio</h2><p className="text-sm text-gray-500 line-clamp-2">{profile.bio || "Add a short bio"}</p></div>
                   <p className="text-sm text-gray-400 group-hover:text-black transition-colors">Edit</p>
-=======
-              </div>
-
-              <div className="flex items-center justify-between py-6 border-b border-gray-200 cursor-pointer group" onClick={() => {
-                setDisplayName(profile?.name || "");
-                setDisplayNameModal(true);
-              }}>
-                <div className="space-y-1 flex-1 pr-4">
-                  <h2 className="text-[15px] font-medium text-black">Name</h2>
-                  <p className="text-sm text-gray-500 line-clamp-1">{profile?.name || "—"}</p>
-                </div>
-                <p className="text-sm text-gray-400 group-hover:text-black transition-colors">Edit</p>
-              </div>
-
-              <div className="flex items-center justify-between py-6 border-b border-gray-200 cursor-pointer group" onClick={() => {
-                setNewUsername(profile?.username || "");
-                setUsernameModalOpen(true);
-              }}>
-                <div className="space-y-1 flex-1 pr-4">
-                  <h2 className="text-[15px] font-medium text-black">Username</h2>
-                  <p className="text-sm text-gray-500 line-clamp-1">{profile?.username || "Add a username"}</p>
-                </div>
-                <p className="text-sm text-gray-400 group-hover:text-black transition-colors">Edit</p>
-              </div>
-
-              <div className="flex items-center justify-between py-6 border-b border-gray-200 cursor-pointer group" onClick={() => {
-                setBioText(profile?.bio || "");
-                setBioModalOpen(true);
-              }}>
-                <div className="space-y-1 flex-1 pr-4">
-                  <h2 className="text-[15px] font-medium text-black">Short bio</h2>
-                  <p className="text-sm text-gray-500 line-clamp-2">{profile?.bio || "Add a short bio"}</p>
->>>>>>> 9c11ff4b8dcaf60db53ded77597031a67b3328a7
                 </div>
                 <div className="flex items-center justify-between py-6 cursor-pointer group" onClick={() => setSocialsModalOpen(true)}>
-                  <div className="space-y-2 flex-1 pr-4"><h2 className="text-[15px] font-medium text-black">Social Handles</h2><div className="flex gap-3">{Object.entries(socials).map(([p,v])=>v && <span key={p} className="text-xs text-gray-400 uppercase">{p}</span>)}</div></div>
+                  <div className="space-y-2 flex-1 pr-4"><h2 className="text-[15px] font-medium text-black">Social Handles</h2><div className="flex gap-3">{Object.entries(socials).map(([p, v]) => v && <span key={p} className="text-xs text-gray-400 uppercase">{p}</span>)}</div></div>
                   <p className="text-sm text-gray-400 group-hover:text-black transition-colors">Edit</p>
                 </div>
               </section>
@@ -373,22 +309,9 @@ const Page = () => {
                   <div className="space-y-1 flex-1 pr-4"><h2 className="text-[15px] font-medium text-black">Password</h2><p className="text-sm text-gray-500">Update security</p></div>
                   <p className="text-sm text-gray-400 group-hover:text-black transition-colors">Edit</p>
                 </div>
-<<<<<<< HEAD
                 <div className="flex items-center justify-between py-6 cursor-pointer group" onClick={() => setPreferencesOpen(true)}>
                   <div className="space-y-1 flex-1 pr-4"><h2 className="text-[15px] font-medium text-black">Interests</h2><p className="text-sm text-gray-500">Personalize feed</p></div>
                   <p className="text-sm text-gray-400 group-hover:text-black transition-colors">Edit</p>
-=======
-                <p className="text-sm text-gray-400 group-hover:text-black transition-colors">Edit</p>
-              </div>
-
-              <div className="flex items-center justify-between py-6 border-b border-gray-200 cursor-pointer group" onClick={() => {
-                setSelectedInterests(Array.isArray(profile?.interests) ? profile.interests : []);
-                setPreferencesOpen(true);
-              }}>
-                <div className="space-y-1 flex-1 pr-4">
-                  <h2 className="text-[15px] font-medium text-black">Topics of Interest</h2>
-                  <p className="text-sm text-gray-500">Manage your reading preferences</p>
->>>>>>> 9c11ff4b8dcaf60db53ded77597031a67b3328a7
                 </div>
                 <div className="py-6 flex items-center justify-between"><div className="space-y-1"><h2 className="text-[15px] font-medium text-black">Email</h2><p className="text-sm text-gray-500">{profile.email}</p></div></div>
               </section>
@@ -450,7 +373,7 @@ const Page = () => {
                       {isOwnProfile && <button onClick={() => setAboutModalOpen(true)} className="flex items-center gap-2 text-xs font-medium text-gray-500 hover:text-black transition-colors px-4 py-2 rounded-full border border-gray-100 hover:border-gray-200 shadow-sm"><PencilIcon className="w-3.5 h-3.5" />Edit About</button>}
                     </div>
                     {profile.about_rich ? <div className="text-gray-700 text-[16px] leading-relaxed mb-12" dangerouslySetInnerHTML={{ __html: profile.about_rich }} /> : <p className="text-gray-700 text-[16px] leading-relaxed mb-12">{profile.bio || "No about information yet."}</p>}
-                    <div className="pt-12 border-t border-gray-100"><h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">Connect</h4><div className="flex flex-wrap gap-6">{Object.entries(socials).map(([p,v])=>v && <a key={p} href={v.startsWith('http')?v:`https://${p}.com/${v}`} target="_blank" className="text-sm font-medium text-gray-600 hover:text-black transition-colors capitalize">{p}</a>)}</div></div>
+                    <div className="pt-12 border-t border-gray-100"><h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">Connect</h4><div className="flex flex-wrap gap-6">{Object.entries(socials).map(([p, v]) => v && <a key={p} href={v.startsWith('http') ? v : `https://${p}.com/${v}`} target="_blank" className="text-sm font-medium text-gray-600 hover:text-black transition-colors capitalize">{p}</a>)}</div></div>
                   </div>
                 )}
               </div>
@@ -463,13 +386,13 @@ const Page = () => {
       )}
 
       {/* ── ALL MODALS ── */}
-      <Modal open={displayNameModal} onOpenChange={setDisplayNameModal}><div className="p-2 text-black"><h2 className="text-xl font-bold mb-6">Display name</h2><input type="text" className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-black transition-all mb-4" value={displayName} onChange={e=>setDisplayName(e.target.value)} /><div className="flex justify-end gap-3 mt-4"><button onClick={()=>setDisplayNameModal(false)} className="text-gray-500 px-4">Cancel</button><button onClick={handleUpdateDisplayName} className="px-6 py-2 bg-black text-white rounded-full">Save</button></div></div></Modal>
-      <Modal open={usernameModalOpen} onOpenChange={setUsernameModalOpen}><div className="p-2 text-black"><h2 className="text-xl font-bold mb-6">Username</h2><div className="flex items-center gap-2 p-4 bg-gray-50 border border-gray-200 rounded-xl focus-within:border-black transition-all mb-4"><span className="text-gray-400">@</span><input type="text" className="w-full bg-transparent outline-none" value={newUsername} onChange={e=>setNewUsername(e.target.value.toLowerCase())} /></div><div className="flex justify-end gap-3 mt-4"><button onClick={()=>setUsernameModalOpen(false)} className="text-gray-500 px-4">Cancel</button><button onClick={handleUpdateUsername} className="px-6 py-2 bg-black text-white rounded-full">Save</button></div></div></Modal>
-      <Modal open={bioModalOpen} onOpenChange={setBioModalOpen}><div className="p-2 text-black"><div className="flex justify-between items-center mb-6"><h2 className="text-xl font-bold">Short bio</h2><span className={`text-xs ${bioText.length > 160 ? 'text-red-500' : 'text-gray-400'}`}>{bioText.length}/160</span></div><textarea className={`w-full p-4 bg-gray-50 border rounded-xl outline-none transition-all h-32 resize-none ${bioText.length > 160 ? 'border-red-400' : 'border-gray-200 focus:border-black'}`} value={bioText} onChange={e=>setBioText(e.target.value)} /><div className="flex justify-end gap-3 mt-6"><button onClick={()=>setBioModalOpen(false)} className="text-gray-500 px-4">Cancel</button><button onClick={handleUpdateBio} disabled={bioText.length > 160} className="px-6 py-2 bg-black text-white rounded-full disabled:opacity-50">Save</button></div></div></Modal>
-      <Modal open={socialsModalOpen} onOpenChange={setSocialsModalOpen}><div className="p-2 text-black"><h2 className="text-xl font-bold mb-6">Social links</h2><div className="space-y-4">{Object.keys(socials).map(p=>(<div key={p} className="flex flex-col gap-1.5"><label className="text-[10px] uppercase font-bold text-gray-400 ml-1">{p}</label><input type="text" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-black" value={socials[p]} onChange={e=>setSocials({...socials,[p]:e.target.value})} /></div>))}</div><div className="flex justify-end gap-3 mt-8"><button onClick={()=>setSocialsModalOpen(false)} className="text-gray-500 px-4">Cancel</button><button onClick={handleUpdateSocials} className="px-6 py-2 bg-black text-white rounded-full">Save</button></div></div></Modal>
-      <Modal open={preferencesOpen} onOpenChange={setPreferencesOpen}><div className="p-2 text-black"><h2 className="text-xl font-bold mb-4">Interests</h2><p className="text-sm text-gray-500 mb-6">Select 3+ topics</p><div className="flex flex-wrap gap-2">{INTERESTS.map(t=>(<button key={t} onClick={()=>{if(selectedInterests.includes(t)) setSelectedInterests(selectedInterests.filter(i=>i!==t)); else setSelectedInterests([...selectedInterests,t]);}} className={`px-4 py-2 rounded-full border text-sm transition-all ${selectedInterests.includes(t) ? 'bg-black text-white border-black' : 'hover:border-black'}`}>{t}</button>))}</div><div className="flex justify-end gap-3 mt-8"><button onClick={()=>setPreferencesOpen(false)} className="text-gray-500 px-4">Cancel</button><button onClick={handleUpdatePreferences} className="px-6 py-2 bg-black text-white rounded-full">Save</button></div></div></Modal>
-      <Modal open={changePasswordOpen} onOpenChange={setChangePasswordOpen}><div className="p-2 text-black"><h2 className="text-xl font-bold mb-6">Change password</h2><input type="password" placeholder="New password" className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-black mb-4" value={newPassword} onChange={e=>setNewPassword(e.target.value)} /><div className="flex justify-end gap-3"><button onClick={()=>setChangePasswordOpen(false)} className="text-gray-500 px-4">Cancel</button><button onClick={handleUpdatePassword} className="px-6 py-2 bg-black text-white rounded-full">Update</button></div></div></Modal>
-      <Modal open={avatarModalOpen} onOpenChange={setAvatarModalOpen}><div className="p-4 text-center text-black flex flex-col items-center"><h2 className="text-xl font-bold mb-8">Profile picture</h2><Image src={profile.avatar || "/default-avatar.jpg"} alt="Preview" width={128} height={128} className="w-32 h-32 rounded-full object-cover mb-8 bg-gray-50 border" /><div className="w-full space-y-3"><button onClick={()=>fileInputRef.current?.click()} className="w-full py-3 bg-black text-white rounded-full font-medium">Upload new</button><button onClick={()=>setAvatarModalOpen(false)} className="w-full py-3 text-gray-500">Cancel</button></div><input type="file" hidden ref={fileInputRef} onChange={handleAvatarChange} /></div></Modal>
+      <Modal open={displayNameModal} onOpenChange={setDisplayNameModal}><div className="p-2 text-black"><h2 className="text-xl font-bold mb-6">Display name</h2><input type="text" className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-black transition-all mb-4" value={displayName} onChange={e => setDisplayName(e.target.value)} /><div className="flex justify-end gap-3 mt-4"><button onClick={() => setDisplayNameModal(false)} className="text-gray-500 px-4">Cancel</button><button onClick={handleUpdateDisplayName} className="px-6 py-2 bg-black text-white rounded-full">Save</button></div></div></Modal>
+      <Modal open={usernameModalOpen} onOpenChange={setUsernameModalOpen}><div className="p-2 text-black"><h2 className="text-xl font-bold mb-6">Username</h2><div className="flex items-center gap-2 p-4 bg-gray-50 border border-gray-200 rounded-xl focus-within:border-black transition-all mb-4"><span className="text-gray-400">@</span><input type="text" className="w-full bg-transparent outline-none" value={newUsername} onChange={e => setNewUsername(e.target.value.toLowerCase())} /></div><div className="flex justify-end gap-3 mt-4"><button onClick={() => setUsernameModalOpen(false)} className="text-gray-500 px-4">Cancel</button><button onClick={handleUpdateUsername} className="px-6 py-2 bg-black text-white rounded-full">Save</button></div></div></Modal>
+      <Modal open={bioModalOpen} onOpenChange={setBioModalOpen}><div className="p-2 text-black"><div className="flex justify-between items-center mb-6"><h2 className="text-xl font-bold">Short bio</h2><span className={`text-xs ${bioText.length > 160 ? 'text-red-500' : 'text-gray-400'}`}>{bioText.length}/160</span></div><textarea className={`w-full p-4 bg-gray-50 border rounded-xl outline-none transition-all h-32 resize-none ${bioText.length > 160 ? 'border-red-400' : 'border-gray-200 focus:border-black'}`} value={bioText} onChange={e => setBioText(e.target.value)} /><div className="flex justify-end gap-3 mt-6"><button onClick={() => setBioModalOpen(false)} className="text-gray-500 px-4">Cancel</button><button onClick={handleUpdateBio} disabled={bioText.length > 160} className="px-6 py-2 bg-black text-white rounded-full disabled:opacity-50">Save</button></div></div></Modal>
+      <Modal open={socialsModalOpen} onOpenChange={setSocialsModalOpen}><div className="p-2 text-black"><h2 className="text-xl font-bold mb-6">Social links</h2><div className="space-y-4">{Object.keys(socials).map(p => (<div key={p} className="flex flex-col gap-1.5"><label className="text-[10px] uppercase font-bold text-gray-400 ml-1">{p}</label><input type="text" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-black" value={socials[p]} onChange={e => setSocials({ ...socials, [p]: e.target.value })} /></div>))}</div><div className="flex justify-end gap-3 mt-8"><button onClick={() => setSocialsModalOpen(false)} className="text-gray-500 px-4">Cancel</button><button onClick={handleUpdateSocials} className="px-6 py-2 bg-black text-white rounded-full">Save</button></div></div></Modal>
+      <Modal open={preferencesOpen} onOpenChange={setPreferencesOpen}><div className="p-2 text-black"><h2 className="text-xl font-bold mb-4">Interests</h2><p className="text-sm text-gray-500 mb-6">Select 3+ topics</p><div className="flex flex-wrap gap-2">{INTERESTS.map(t => (<button key={t} onClick={() => { if (selectedInterests.includes(t)) setSelectedInterests(selectedInterests.filter(i => i !== t)); else setSelectedInterests([...selectedInterests, t]); }} className={`px-4 py-2 rounded-full border text-sm transition-all ${selectedInterests.includes(t) ? 'bg-black text-white border-black' : 'hover:border-black'}`}>{t}</button>))}</div><div className="flex justify-end gap-3 mt-8"><button onClick={() => setPreferencesOpen(false)} className="text-gray-500 px-4">Cancel</button><button onClick={handleUpdatePreferences} className="px-6 py-2 bg-black text-white rounded-full">Save</button></div></div></Modal>
+      <Modal open={changePasswordOpen} onOpenChange={setChangePasswordOpen}><div className="p-2 text-black"><h2 className="text-xl font-bold mb-6">Change password</h2><input type="password" placeholder="New password" className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-black mb-4" value={newPassword} onChange={e => setNewPassword(e.target.value)} /><div className="flex justify-end gap-3"><button onClick={() => setChangePasswordOpen(false)} className="text-gray-500 px-4">Cancel</button><button onClick={handleUpdatePassword} className="px-6 py-2 bg-black text-white rounded-full">Update</button></div></div></Modal>
+      <Modal open={avatarModalOpen} onOpenChange={setAvatarModalOpen}><div className="p-4 text-center text-black flex flex-col items-center"><h2 className="text-xl font-bold mb-8">Profile picture</h2><Image src={profile.avatar || "/default-avatar.jpg"} alt="Preview" width={128} height={128} className="w-32 h-32 rounded-full object-cover mb-8 bg-gray-50 border" /><div className="w-full space-y-3"><button onClick={() => fileInputRef.current?.click()} className="w-full py-3 bg-black text-white rounded-full font-medium">Upload new</button><button onClick={() => setAvatarModalOpen(false)} className="w-full py-3 text-gray-500">Cancel</button></div><input type="file" hidden ref={fileInputRef} onChange={handleAvatarChange} /></div></Modal>
 
       {/* ── About Rich Text Editor Modal ── */}
       <Modal open={aboutModalOpen} onOpenChange={setAboutModalOpen} size="large">
@@ -482,12 +405,12 @@ const Page = () => {
               { cmd: 'formatBlock', val: 'h2', icon: 'H1' }, { cmd: 'formatBlock', val: 'h3', icon: 'H2' },
               { cmd: 'formatBlock', val: 'blockquote', icon: '“' },
             ].map((btn, i) => (
-              <button key={i} onMouseDown={e=>{e.preventDefault(); document.execCommand(btn.cmd, false, btn.val || null);}} className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-200 transition-colors font-bold text-lg">{btn.icon}</button>
+              <button key={i} onMouseDown={e => { e.preventDefault(); document.execCommand(btn.cmd, false, btn.val || null); }} className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-200 transition-colors font-bold text-lg">{btn.icon}</button>
             ))}
           </div>
           <div ref={editorRef} contentEditable suppressContentEditableWarning className="flex-1 p-6 border border-gray-100 rounded-2xl outline-none focus:border-black transition-colors prose max-w-none overflow-y-auto bg-white shadow-inner min-h-[300px]" dangerouslySetInnerHTML={{ __html: aboutContent }} />
           <div className="flex justify-end gap-4 mt-8">
-            <button onClick={()=>setAboutModalOpen(false)} className="text-gray-500 font-medium px-4">Cancel</button>
+            <button onClick={() => setAboutModalOpen(false)} className="text-gray-500 font-medium px-4">Cancel</button>
             <button onClick={handleUpdateAbout} disabled={aboutLoading} className="px-8 py-3 bg-black text-white rounded-full font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50">{aboutLoading ? "Saving..." : "Save Changes"}</button>
           </div>
         </div>
@@ -497,3 +420,4 @@ const Page = () => {
 };
 
 export default Page;
+
