@@ -1,51 +1,56 @@
 import { supabase } from "@/lib/supabaseClient";
+import { buildAnalyticsPayload } from "@/lib/analyticsHelpers";
 
 const useBookmarkActions = (user) => {
+  const addBookmark = async (articleId) => {
+    if (!user) return;
 
-    const addBookmark = async (articleId) => {
-        if (!user) return;
+    const meta = await buildAnalyticsPayload();
+    const { error } = await supabase.from("bookmarks").insert([
+      {
+        user_id: user.id,
+        article_id: articleId,
+        ...meta,
+      },
+    ]);
 
-        const { error } = await supabase
-            .from("bookmarks")
-            .insert([{ user_id: user.id, article_id: articleId }]);
+    if (error) console.error("Add bookmark error:", error);
+  };
 
-        if (error) console.error("Add bookmark error:", error);
-    };
+  const removeBookmark = async (articleId) => {
+    if (!user) return;
 
-    const removeBookmark = async (articleId) => {
-        if (!user) return;
+    const { error } = await supabase
+      .from("bookmarks")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("article_id", articleId);
 
-        const { error } = await supabase
-            .from("bookmarks")
-            .delete()
-            .eq("user_id", user.id)
-            .eq("article_id", articleId);
+    if (error) console.error("Remove bookmark error:", error);
+  };
 
-        if (error) console.error("Remove bookmark error:", error);
-    };
+  const isBookmarked = async (articleId) => {
+    if (!user) return false;
 
-    const isBookmarked = async (articleId) => {
-        if (!user) return false;
+    const { data, error } = await supabase
+      .from("bookmarks")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("article_id", articleId)
+      .single();
 
-        const { data, error } = await supabase
-            .from("bookmarks")
-            .select("*")
-            .eq("user_id", user.id)
-            .eq("article_id", articleId)
-            .single();
+    if (error && error.code !== "PGRST116") {
+      console.error("Check bookmark error:", error);
+    }
 
-        if (error && error.code !== "PGRST116") {
-            console.error("Check bookmark error:", error);
-        }
+    return !!data;
+  };
 
-        return !!data;
-    };
-
-    return {
-        addBookmark,
-        removeBookmark,
-        isBookmarked,
-    };
+  return {
+    addBookmark,
+    removeBookmark,
+    isBookmarked,
+  };
 };
 
 export default useBookmarkActions;

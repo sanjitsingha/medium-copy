@@ -7,7 +7,12 @@ import { IoBookmarkOutline, IoBookmark } from "react-icons/io5";
 import { useAuthContext } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
 import { TbBookmarks, TbBookmarksFilled } from "react-icons/tb";
-import { AiFillLike, AiOutlineLike, AiFillDislike, AiOutlineDislike } from "react-icons/ai";
+import {
+  AiFillLike,
+  AiOutlineLike,
+  AiFillDislike,
+  AiOutlineDislike,
+} from "react-icons/ai";
 
 function StoriesCardHorizontal({
   article,
@@ -17,16 +22,20 @@ function StoriesCardHorizontal({
   onBookmark,
 }) {
   const { user } = useAuthContext();
-  const handleLike = React.useCallback(() => onLike(article.id), [onLike, article.id]);
-  const handleBookmark = React.useCallback(() => onBookmark(article.id), [onBookmark, article.id]);
+  const handleLike = React.useCallback(
+    () => onLike(article.id),
+    [onLike, article.id],
+  );
+  const handleBookmark = React.useCallback(
+    () => onBookmark(article.id),
+    [onBookmark, article.id],
+  );
 
   /* ================= IMAGE HELPERS ================= */
   const getImageUrl = (path) => {
     if (!path) return null;
 
-    const { data } = supabase.storage
-      .from("article-images")
-      .getPublicUrl(path);
+    const { data } = supabase.storage.from("article-images").getPublicUrl(path);
 
     return data.publicUrl;
   };
@@ -36,13 +45,21 @@ function StoriesCardHorizontal({
 
   return (
     <div className="border-b border-gray-200  mb-8">
-
       {/* ================= AUTHOR ================= */}
       <div className="flex items-center gap-3 text-xs text-gray-500">
-        <Link href={`/profile/${article.author_username || article.author_id}`} className="flex items-center gap-3 group">
+        <Link
+          href={`/profile/${article.author_username || article.author_id}`}
+          className="flex items-center gap-3 group"
+        >
           <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-200">
             {avatarPhoto && (
-              <Image src={avatarPhoto} alt="author" width={24} height={24} className="w-full h-full object-cover group-hover:opacity-80 transition-opacity" />
+              <Image
+                src={avatarPhoto}
+                alt="author"
+                width={24}
+                height={24}
+                className="w-full h-full object-cover group-hover:opacity-80 transition-opacity"
+              />
             )}
           </div>
 
@@ -71,10 +88,7 @@ function StoriesCardHorizontal({
             </h2>
 
             <p className="text-sm text-gray-500 mt-4 line-clamp-2">
-              {article.content
-                ?.replace(/<[^>]*>/g, "")
-                .slice(0, 220)}
-              …
+              {article.content?.replace(/<[^>]*>/g, "").slice(0, 220)}…
             </p>
           </div>
 
@@ -82,8 +96,8 @@ function StoriesCardHorizontal({
             <Image
               src={imageUrl}
               alt={article.title}
-              width={180}
-              height={120}
+              width={600}
+              height={400}
               className="w-[130px] h-[70px] md:w-[180px] md:h-[120px] object-cover rounded"
             />
           )}
@@ -92,7 +106,6 @@ function StoriesCardHorizontal({
 
       {/* ================= ACTIONS ================= */}
       <div className="flex gap-8 my-4 text-gray-500">
-
         {/* LIKE */}
         <button
           onClick={handleLike}
@@ -125,6 +138,5 @@ function StoriesCardHorizontal({
       </div>
     </div>
   );
-
 }
 export default React.memo(StoriesCardHorizontal);

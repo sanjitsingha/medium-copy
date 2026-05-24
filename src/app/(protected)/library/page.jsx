@@ -7,7 +7,7 @@ import {
   BookmarkSlashIcon,
   TrashIcon,
   ArrowTrendingUpIcon,
-  ShareIcon
+  ShareIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
@@ -48,7 +48,8 @@ const Page = () => {
       // Fetch Bookmarks
       const { data, error } = await supabase
         .from("bookmarks")
-        .select(`
+        .select(
+          `
           id,
           articles (
             id,
@@ -61,22 +62,18 @@ const Page = () => {
               avatar
             )
           )
-        `)
+        `,
+        )
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
       if (!error && data) {
         setBookmarks(data);
       }
-      setLoading(false)
+      setLoading(false);
     };
     fetchBookmarks();
-
-
-
-
   }, [user]);
-
 
   useEffect(() => {
     const handleClickOutside = () => setActiveMenu(null);
@@ -101,7 +98,11 @@ const Page = () => {
     e.stopPropagation();
     const url = `${window.location.origin}/read/${article.slug || article.id}`;
     if (navigator.share) {
-      await navigator.share({ title: article.title, text: article.subtitle || article.title, url });
+      await navigator.share({
+        title: article.title,
+        text: article.subtitle || article.title,
+        url,
+      });
     } else {
       await navigator.clipboard.writeText(url);
       alert("Link copied to clipboard");
@@ -112,10 +113,11 @@ const Page = () => {
   return (
     <div className="w-full bg-white min-h-screen pb-20">
       <div className="max-w-3xl mx-auto px-4 md:px-6 pt-16 font-creato">
-
         {/* Header Section */}
         <div className="w-full flex justify-between items-end mb-12">
-          <h1 className="text-4xl font-semibold tracking-tight text-black">Library</h1>
+          <h1 className="text-4xl font-semibold tracking-tight text-black">
+            Library
+          </h1>
         </div>
 
         {/* Tabs */}
@@ -125,10 +127,18 @@ const Page = () => {
               setSelectedTab("your-list");
               router.push("/library?tab=your-list");
             }}
-            className={`pb-4 text-[15px] font-medium transition-colors cursor-pointer relative ${activeTab === "your-list" ? "text-black" : "text-gray-500 hover:text-black"
-              }`}
+            className={`pb-4 text-[15px] font-medium transition-colors cursor-pointer relative ${
+              activeTab === "your-list"
+                ? "text-black"
+                : "text-gray-500 hover:text-black"
+            }`}
           >
-            Your List {bookmarks.length > 0 && <span className="ml-1 text-gray-400 font-normal">{bookmarks.length}</span>}
+            Your List{" "}
+            {bookmarks.length > 0 && (
+              <span className="ml-1 text-gray-400 font-normal">
+                {bookmarks.length}
+              </span>
+            )}
             {activeTab === "your-list" && (
               <span className="absolute bottom-0 left-0 w-full h-[2px] bg-black"></span>
             )}
@@ -139,10 +149,18 @@ const Page = () => {
               setSelectedTab("watch-history");
               router.push("/library?tab=watch-history");
             }}
-            className={`pb-4 text-[15px] font-medium transition-colors cursor-pointer relative ${activeTab === "watch-history" ? "text-black" : "text-gray-500 hover:text-black"
-              }`}
+            className={`pb-4 text-[15px] font-medium transition-colors cursor-pointer relative ${
+              activeTab === "watch-history"
+                ? "text-black"
+                : "text-gray-500 hover:text-black"
+            }`}
           >
-            Watch History {history.length > 0 && <span className="ml-1 text-gray-400 font-normal">{history.length}</span>}
+            Watch History{" "}
+            {history.length > 0 && (
+              <span className="ml-1 text-gray-400 font-normal">
+                {history.length}
+              </span>
+            )}
             {activeTab === "watch-history" && (
               <span className="absolute bottom-0 left-0 w-full h-[2px] bg-black"></span>
             )}
@@ -153,20 +171,31 @@ const Page = () => {
         <div className="w-full">
           {loading ? (
             <div className="py-10 text-center">
-              <p className="text-gray-500 text-[15px]">Loading your library...</p>
+              <p className="text-gray-500 text-[15px]">
+                Loading your library...
+              </p>
             </div>
           ) : activeTab === "your-list" ? (
             bookmarks.length === 0 ? (
               <div className="py-16 text-center">
-                <p className="text-black font-medium text-lg mb-2">Your list is empty.</p>
-                <p className="text-gray-500 text-[15px]">Save stories to read them later.</p>
+                <p className="text-black font-medium text-lg mb-2">
+                  Your list is empty.
+                </p>
+                <p className="text-gray-500 text-[15px]">
+                  Save stories to read them later.
+                </p>
               </div>
             ) : (
               <div className="flex flex-col">
                 {bookmarks.map((item) => (
-                  <div key={item.id} className="py-6 flex items-start border-b border-gray-100 gap-6 group">
+                  <div
+                    key={item.id}
+                    className="py-6 flex items-start border-b border-gray-100 gap-6 group"
+                  >
                     <div className="flex-1">
-                      <Link href={`/read/${item.articles?.slug || item.articles?.id}`}>
+                      <Link
+                        href={`/read/${item.articles?.slug || item.articles?.id}`}
+                      >
                         <h2 className="text-[20px] font-bold text-black mb-2 line-clamp-2 group-hover:underline decoration-gray-300 underline-offset-4 leading-snug">
                           {item.articles?.title}
                         </h2>
@@ -193,36 +222,53 @@ const Page = () => {
                               </div>
                             )}
                           </div>
-                          <span className="font-medium text-gray-700">{item.articles?.users?.name}</span>
+                          <span className="font-medium text-gray-700">
+                            {item.articles?.users?.name}
+                          </span>
                         </div>
                         <span>•</span>
-                        <span>{new Date(item.articles?.created_at).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}</span>
+                        <span>
+                          {new Date(
+                            item.articles?.created_at,
+                          ).toLocaleDateString("en-IN", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </span>
                         <span>•</span>
-                        <span>{Math.max(1, Math.ceil((item.articles?.content?.length || 1000) / 1000))} min read</span>
+                        <span>
+                          {Math.max(
+                            1,
+                            Math.ceil(
+                              (item.articles?.content?.length || 1000) / 1000,
+                            ),
+                          )}{" "}
+                          min read
+                        </span>
                       </div>
                     </div>
 
-                    {item.articles?.cover_image && (
-                      <div className="hidden sm:block shrink-0">
-                        <Image
-                          src={getImageUrl(item.articles.cover_image)}
-                          width={112}
-                          height={112}
-                          alt={item.articles.title}
-                          className="object-cover rounded w-28 h-28 border border-gray-100"
-                        />
-                      </div>
-                    )}
+                    <div className="hidden sm:block shrink-0">
+                      <Image
+                        src={
+                          getImageUrl(item.articles.cover_image) ||
+                          "/vichento-image-placeholder.png"
+                        }
+                        width={600}
+                        height={400}
+                        alt={item.articles.title}
+                        className="object-cover rounded w-28 h-28 border border-gray-100"
+                      />
+                    </div>
 
                     <div className="relative shrink-0 ml-2">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          setActiveMenu(activeMenu === item.id ? null : item.id);
+                          setActiveMenu(
+                            activeMenu === item.id ? null : item.id,
+                          );
                         }}
                         className="p-1 cursor-pointer rounded-full hover:bg-gray-100 transition-colors"
                       >
@@ -256,15 +302,24 @@ const Page = () => {
           ) : activeTab === "watch-history" ? (
             history.length === 0 ? (
               <div className="py-16 text-center">
-                <p className="text-black font-medium text-lg mb-2">No history found.</p>
-                <p className="text-gray-500 text-[15px]">Stories you read will appear here.</p>
+                <p className="text-black font-medium text-lg mb-2">
+                  No history found.
+                </p>
+                <p className="text-gray-500 text-[15px]">
+                  Stories you read will appear here.
+                </p>
               </div>
             ) : (
               <div className="flex flex-col">
                 {history.map((item) => (
-                  <div key={item.id} className="py-6 flex items-start border-b border-gray-100 gap-6 group">
+                  <div
+                    key={item.id}
+                    className="py-6 flex items-start border-b border-gray-100 gap-6 group"
+                  >
                     <div className="flex-1">
-                      <Link href={`/read/${item.articles?.slug || item.articles?.id}`}>
+                      <Link
+                        href={`/read/${item.articles?.slug || item.articles?.id}`}
+                      >
                         <h2 className="text-[20px] font-bold text-black mb-2 line-clamp-2 group-hover:underline decoration-gray-300 underline-offset-4 leading-snug">
                           {item.articles?.title}
                         </h2>
@@ -291,36 +346,55 @@ const Page = () => {
                               </div>
                             )}
                           </div>
-                          <span className="font-medium text-gray-700">{item.articles?.users?.name}</span>
+                          <span className="font-medium text-gray-700">
+                            {item.articles?.users?.name}
+                          </span>
                         </div>
                         <span>•</span>
-                        <span>Read on {new Date(item.created_at).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}</span>
+                        <span>
+                          Read on{" "}
+                          {new Date(item.created_at).toLocaleDateString(
+                            "en-IN",
+                            {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            },
+                          )}
+                        </span>
                         <span>•</span>
-                        <span>{Math.max(1, Math.ceil((item.articles?.content?.length || 1000) / 1000))} min read</span>
+                        <span>
+                          {Math.max(
+                            1,
+                            Math.ceil(
+                              (item.articles?.content?.length || 1000) / 1000,
+                            ),
+                          )}{" "}
+                          min read
+                        </span>
                       </div>
                     </div>
 
-                    {item.articles?.cover_image && (
-                      <div className="hidden sm:block shrink-0">
-                        <Image
-                          src={getImageUrl(item.articles.cover_image)}
-                          width={112}
-                          height={112}
-                          alt={item.articles.title}
-                          className="object-cover rounded w-28 h-28 border border-gray-100"
-                        />
-                      </div>
-                    )}
+                    <div className="hidden sm:block shrink-0">
+                      <Image
+                        src={
+                          getImageUrl(item.articles.cover_image) ||
+                          "/vichento-image-placeholder.png"
+                        }
+                        width={600}
+                        height={400}
+                        alt={item.articles.title}
+                        className="object-cover rounded w-28 h-28 border border-gray-100"
+                      />
+                    </div>
 
                     <div className="relative shrink-0 ml-2">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          setActiveMenu(activeMenu === item.id ? null : item.id);
+                          setActiveMenu(
+                            activeMenu === item.id ? null : item.id,
+                          );
                         }}
                         className="p-1 cursor-pointer rounded-full hover:bg-gray-100 transition-colors"
                       >

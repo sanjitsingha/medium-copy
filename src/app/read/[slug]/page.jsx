@@ -12,6 +12,7 @@ import { TbBookmarks, TbBookmarksFilled } from "react-icons/tb";
 import { useAuthContext } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
 import { sanitizeHtml } from "@/lib/sanitizeHtml";
+import { buildAnalyticsPayload } from "@/lib/analyticsHelpers";
 import { HiOutlineDotsHorizontal } from "react-icons/hi";
 import { FaRegComment } from "react-icons/fa6";
 import useUserActions from "@/hooks/useUserActions";
@@ -69,7 +70,6 @@ export default function ReadArticlePage() {
     fetchProfile();
   }, []);
 
-
   // console.log(profile, "avatar", profile?.avatar);
 
   useEffect(() => {
@@ -79,7 +79,7 @@ export default function ReadArticlePage() {
         document.documentElement.scrollHeight -
         document.documentElement.clientHeight;
       setScrollProgress(
-        scrollableHeight > 0 ? (totalScroll / scrollableHeight) * 100 : 0
+        scrollableHeight > 0 ? (totalScroll / scrollableHeight) * 100 : 0,
       );
     };
 
@@ -104,7 +104,7 @@ export default function ReadArticlePage() {
               username,
               avatar
             )
-          `
+          `,
         )
         .eq("slug", slug)
         .eq("status", "published")
@@ -143,11 +143,13 @@ export default function ReadArticlePage() {
       // Test 2: Try fetching with user info if raw fetch worked
       const { data: enrichedData, error: enrichedError } = await supabase
         .from("comments")
-        .select(`
+        .select(
+          `
           *,
           users:user_id (name, avatar),
           comment_likes (user_id)
-        `)
+        `,
+        )
         .eq("article_id", articleId)
         .order("created_at", { ascending: false });
 
@@ -164,7 +166,7 @@ export default function ReadArticlePage() {
     if (article?.id) {
       fetchComments(article.id);
     }
-  }, [article?.id]);
+  }, [article?.id, user?.id]);
 
   useEffect(() => {
     if (!article?.id) return;
@@ -174,25 +176,13 @@ export default function ReadArticlePage() {
       if (localStorage.getItem(storageKey)) return;
 
       localStorage.setItem(storageKey, "true");
-
-      let referrer = null;
-      try {
-        const ref = document.referrer;
-        if (ref) {
-          const refUrl = new URL(ref);
-          if (refUrl.hostname !== window.location.hostname) {
-            referrer = refUrl.hostname;
-          }
-        }
-      } catch {
-        referrer = null;
-      }
+      const meta = await buildAnalyticsPayload();
 
       const { error } = await supabase.from("views").insert([
         {
           article_id: article.id,
           user_id: user?.id || null,
-          referrer,
+          ...meta,
         },
       ]);
 
@@ -221,7 +211,7 @@ export default function ReadArticlePage() {
   };
 
   const scrollToComments = () => {
-    commentsRef.current?.scrollIntoView({ behavior: 'smooth' });
+    commentsRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   const handlePostComment = async () => {
@@ -243,7 +233,7 @@ export default function ReadArticlePage() {
     if (error) {
       console.error("POST ERROR MESSAGE:", error.message);
       console.error("POST ERROR CODE:", error.code);
-      alert(`Failed to post comment: ${error.message || 'Check console'}`);
+      alert(`Failed to post comment: ${error.message || "Check console"}`);
     } else {
       setCommentText("");
       fetchComments(article.id);
@@ -252,9 +242,13 @@ export default function ReadArticlePage() {
   };
 
   const handleDeleteComment = async (commentId) => {
-    if (!window.confirm("Are you sure you want to delete this response?")) return;
+    if (!window.confirm("Are you sure you want to delete this response?"))
+      return;
 
-    const { error } = await supabase.from("comments").delete().eq("id", commentId);
+    const { error } = await supabase
+      .from("comments")
+      .delete()
+      .eq("id", commentId);
 
     if (error) {
       alert("Failed to delete comment");
@@ -354,7 +348,9 @@ export default function ReadArticlePage() {
   const avatar = article.users?.avatar || "/placeholder.png";
   const readingTime = Math.max(
     1,
-    Math.ceil((article.content?.replace(/<[^>]*>?/gm, "").length || 1000) / 1000)
+    Math.ceil(
+      (article.content?.replace(/<[^>]*>?/gm, "").length || 1000) / 1000,
+    ),
   );
 
   return (
@@ -375,7 +371,7 @@ export default function ReadArticlePage() {
       </p>
 
       <div className="flex justify-between mt-6 mb-2 border-t border-b border-gray-100 py-3">
-        <Link 
+        <Link
           href={`/profile/${article.users?.username || article.author_id}`}
           className="text-gray-500 text-[15px] flex gap-3 items-center group"
         >
@@ -388,7 +384,9 @@ export default function ReadArticlePage() {
             className="rounded-full object-cover border border-gray-100 group-hover:opacity-80 transition-opacity"
           />
           <div className="flex flex-col">
-            <p className="text-black font-medium leading-tight group-hover:text-gray-600 transition-colors">{authorName}</p>
+            <p className="text-black font-medium leading-tight group-hover:text-gray-600 transition-colors">
+              {authorName}
+            </p>
             <div className="flex items-center gap-2 text-[12px] text-gray-400">
               <p>{readingTime} min read</p>
               <span>-</span>
@@ -454,8 +452,8 @@ export default function ReadArticlePage() {
 
       {article.cover_image && (
         <Image
-          width={700}
-          height={500}
+          width={600}
+          height={400}
           priority
           src={article.cover_image}
           className="w-full rounded my-8 object-cover"
@@ -486,10 +484,11 @@ export default function ReadArticlePage() {
       <div className="py-10">
         <hr className="my-6" />
         <p className="text-xl font-semibold mb-8 text-black">Related Stories</p>
-        <RelatedArticles categories={article.categories} currentId={article.id} />
+        <RelatedArticles
+          categories={article.categories}
+          currentId={article.id}
+        />
       </div>
-
     </div>
-
   );
 }

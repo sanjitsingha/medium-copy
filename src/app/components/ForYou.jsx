@@ -43,7 +43,7 @@ export default function ForYou() {
               username,
               avatar
             )
-          `
+          `,
         )
         .eq("status", "published")
         .order("updated_at", { ascending: false })
@@ -65,8 +65,10 @@ export default function ForYou() {
             author_name: article.users?.name || "Unknown",
             author_username: article.users?.username || article.users?.id,
             author_avatar: article.users?.avatar || null,
-            thumbnail: article.cover_image,
-          }))
+            thumbnail: article.cover_image
+              ? getImageUrl(article.cover_image)
+              : null,
+          })),
         );
       }
 

@@ -4,7 +4,7 @@ import HTMLReactParser from "html-react-parser";
 import { sanitizeHtml } from "@/lib/sanitizeHtml";
 
 const StoriesCard = ({ post }) => {
-  const imageUrl = post.cover_image || "/blog_image.avif";
+  const imageUrl = post.cover_image || "/vichento-image-placeholder.png";
   const avatarUrl = post.users?.avatar || "/default-avatar.jpg";
   const authorName = post.users?.name || post.author_name || "Author";
   const createdAt = post.created_at || post.updated_at;
@@ -14,8 +14,8 @@ const StoriesCard = ({ post }) => {
       <div className="w-full md:w-[380px]">
         <Image
           src={imageUrl}
-          width={380}
-          height={200}
+          width={600}
+          height={400}
           className="w-full h-[160px] md:h-[200px] object-cover rounded-sm"
           alt={post.title}
         />

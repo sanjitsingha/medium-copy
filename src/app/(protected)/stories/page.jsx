@@ -5,7 +5,7 @@ import {
   TrashIcon,
   ArrowTrendingUpIcon,
   EllipsisHorizontalIcon,
-  ArrowUturnLeftIcon
+  ArrowUturnLeftIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { QueueListIcon as QueueSolid } from "@heroicons/react/24/solid";
@@ -14,7 +14,6 @@ import { PiShareFatThin } from "react-icons/pi";
 import { supabase } from "@/lib/supabaseClient";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-
 
 const Page = () => {
   const searchParams = useSearchParams();
@@ -35,7 +34,6 @@ const Page = () => {
     return data.publicUrl;
   };
 
-
   const [activeMenu, setActiveMenu] = useState(null);
 
   // ✅ close dropdown on outside click
@@ -44,7 +42,6 @@ const Page = () => {
     window.addEventListener("click", handleClickOutside);
     return () => window.removeEventListener("click", handleClickOutside);
   }, []);
-
 
   useEffect(() => {
     if (!user) return;
@@ -78,7 +75,12 @@ const Page = () => {
   }, [user]);
 
   const handleDelete = async (id, status) => {
-    if (!window.confirm("Are you sure you want to delete this story? This action cannot be undone.")) return;
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this story? This action cannot be undone.",
+      )
+    )
+      return;
 
     try {
       const { error } = await supabase
@@ -109,11 +111,14 @@ const Page = () => {
 
       if (error) throw error;
 
-      setPublishedArticles((prev) => prev.filter((item) => item.id !== article.id));
-      setDrafts((prev) => [
-        { ...article, status: "draft" },
-        ...prev
-      ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
+      setPublishedArticles((prev) =>
+        prev.filter((item) => item.id !== article.id),
+      );
+      setDrafts((prev) =>
+        [{ ...article, status: "draft" }, ...prev].sort(
+          (a, b) => new Date(b.created_at) - new Date(a.created_at),
+        ),
+      );
 
       setActiveMenu(null);
     } catch (err) {
@@ -141,20 +146,14 @@ const Page = () => {
     setActiveMenu(null);
   };
 
-
-
-
-
-
-
   return (
     <div className="w-full bg-white min-h-screen pb-20">
       <div className="max-w-3xl mx-auto px-4 md:px-6 pt-16 font-creato">
-
         {/* Header Section */}
         <div className="w-full flex justify-between items-end mb-12 ">
-          <h1 className="text-4xl font-semibold tracking-tight text-black">Your stories</h1>
-
+          <h1 className="text-4xl font-semibold tracking-tight text-black">
+            Your stories
+          </h1>
         </div>
 
         {/* Tabs */}
@@ -164,12 +163,18 @@ const Page = () => {
               setSelectedTab("drafts");
               router.push("/stories?tab=drafts");
             }}
-            className={`pb-4 text-[15px] font-medium transition-colors cursor-pointer relative ${activeTab === "drafts"
-              ? "text-black"
-              : "text-gray-500 hover:text-black"
-              }`}
+            className={`pb-4 text-[15px] font-medium transition-colors cursor-pointer relative ${
+              activeTab === "drafts"
+                ? "text-black"
+                : "text-gray-500 hover:text-black"
+            }`}
           >
-            Drafts {drafts.length > 0 && <span className="ml-1 text-gray-400 font-normal">{drafts.length}</span>}
+            Drafts{" "}
+            {drafts.length > 0 && (
+              <span className="ml-1 text-gray-400 font-normal">
+                {drafts.length}
+              </span>
+            )}
             {activeTab === "drafts" && (
               <span className="absolute bottom-0 left-0 w-full h-[2px] bg-black"></span>
             )}
@@ -180,12 +185,18 @@ const Page = () => {
               setSelectedTab("published");
               router.push("/stories?tab=published");
             }}
-            className={`pb-4 text-[15px] font-medium transition-colors cursor-pointer relative ${activeTab === "published"
-              ? "text-black"
-              : "text-gray-500 hover:text-black"
-              }`}
+            className={`pb-4 text-[15px] font-medium transition-colors cursor-pointer relative ${
+              activeTab === "published"
+                ? "text-black"
+                : "text-gray-500 hover:text-black"
+            }`}
           >
-            Published {publishedArticles.length > 0 && <span className="ml-1 text-gray-400 font-normal">{publishedArticles.length}</span>}
+            Published{" "}
+            {publishedArticles.length > 0 && (
+              <span className="ml-1 text-gray-400 font-normal">
+                {publishedArticles.length}
+              </span>
+            )}
             {activeTab === "published" && (
               <span className="absolute bottom-0 left-0 w-full h-[2px] bg-black"></span>
             )}
@@ -201,13 +212,20 @@ const Page = () => {
           ) : activeTab === "drafts" ? (
             drafts.length === 0 ? (
               <div className="py-16 text-center">
-                <p className="text-black font-medium text-lg mb-2">You have no drafts.</p>
-                <p className="text-gray-500 text-[15px]">Write a story that matters to you.</p>
+                <p className="text-black font-medium text-lg mb-2">
+                  You have no drafts.
+                </p>
+                <p className="text-gray-500 text-[15px]">
+                  Write a story that matters to you.
+                </p>
               </div>
             ) : (
               <div className="flex flex-col">
                 {drafts.map((draft) => (
-                  <div key={draft.id} className="py-6 flex items-start border-b border-gray-100 gap-6 group">
+                  <div
+                    key={draft.id}
+                    className="py-6 flex items-start border-b border-gray-100 gap-6 group"
+                  >
                     <div className="flex-1">
                       <Link href={`/write?id=${draft.id}`}>
                         <h2 className="text-[20px] font-bold text-black mb-2 line-clamp-2 group-hover:underline decoration-gray-300 underline-offset-4 leading-snug">
@@ -220,31 +238,40 @@ const Page = () => {
                         )}
                       </Link>
                       <div className="flex items-center text-[13px] text-gray-500 mt-2">
-                        <span>Last edited {new Date(draft.created_at).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}</span>
+                        <span>
+                          Last edited{" "}
+                          {new Date(draft.created_at).toLocaleDateString(
+                            "en-IN",
+                            {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            },
+                          )}
+                        </span>
                       </div>
                     </div>
 
-                    {draft.cover_image && (
-                      <div className="hidden sm:block shrink-0">
-                        <Image
-                          src={getImageUrl(draft.cover_image)}
-                          width={112}
-                          height={112}
-                          alt="Cover Image"
-                          className="object-cover rounded w-28 h-28 border border-gray-100"
-                        />
-                      </div>
-                    )}
+                    <div className="hidden sm:block shrink-0">
+                      <Image
+                        src={
+                          getImageUrl(draft.cover_image) ||
+                          "/vichento-image-placeholder.png"
+                        }
+                        width={600}
+                        height={400}
+                        alt="Cover Image"
+                        className="object-cover rounded w-28 h-28 border border-gray-100"
+                      />
+                    </div>
 
                     <div className="relative shrink-0 ml-2">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          setActiveMenu(activeMenu === draft.id ? null : draft.id);
+                          setActiveMenu(
+                            activeMenu === draft.id ? null : draft.id,
+                          );
                         }}
                         className="p-1 cursor-pointer rounded-full hover:bg-gray-100 transition-colors"
                       >
@@ -296,13 +323,20 @@ const Page = () => {
           ) : activeTab === "published" ? (
             publishedArticles.length === 0 ? (
               <div className="py-16 text-center">
-                <p className="text-black font-medium text-lg mb-2">You have not published any stories yet.</p>
-                <p className="text-gray-500 text-[15px]">Your published stories will appear here.</p>
+                <p className="text-black font-medium text-lg mb-2">
+                  You have not published any stories yet.
+                </p>
+                <p className="text-gray-500 text-[15px]">
+                  Your published stories will appear here.
+                </p>
               </div>
             ) : (
               <div className="flex flex-col">
                 {publishedArticles.map((article) => (
-                  <div key={article.id} className="py-6 flex items-start border-b border-gray-100 gap-6 group">
+                  <div
+                    key={article.id}
+                    className="py-6 flex items-start border-b border-gray-100 gap-6 group"
+                  >
                     <div className="flex-1">
                       <Link href={`/read/${article.slug || article.id}`}>
                         <h2 className="text-[20px] font-bold text-black mb-2 line-clamp-2 group-hover:underline decoration-gray-300 underline-offset-4 leading-snug">
@@ -315,31 +349,40 @@ const Page = () => {
                         )}
                       </Link>
                       <div className="flex items-center text-[13px] text-gray-500 mt-2 gap-2">
-                        <span>Published on {new Date(article.created_at).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}</span>
+                        <span>
+                          Published on{" "}
+                          {new Date(article.created_at).toLocaleDateString(
+                            "en-IN",
+                            {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            },
+                          )}
+                        </span>
                       </div>
                     </div>
 
-                    {article.cover_image && (
-                      <div className="hidden sm:block shrink-0">
-                        <Image
-                          src={getImageUrl(article.cover_image)}
-                          width={200}
-                          height={200}
-                          alt={article.title}
-                          className="object-cover rounded w-[130px] h-[80px] border border-gray-100"
-                        />
-                      </div>
-                    )}
+                    <div className="hidden sm:block shrink-0">
+                      <Image
+                        src={
+                          getImageUrl(article.cover_image) ||
+                          "/vichento-image-placeholder.png"
+                        }
+                        width={600}
+                        height={400}
+                        alt={article.title}
+                        className="object-cover rounded w-[130px] h-[80px] border border-gray-100"
+                      />
+                    </div>
 
                     <div className="relative my-auto shrink-0 ml-2">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          setActiveMenu(activeMenu === article.id ? null : article.id);
+                          setActiveMenu(
+                            activeMenu === article.id ? null : article.id,
+                          );
                         }}
                         className="p-1 cursor-pointer rounded-full hover:bg-gray-100 transition-colors"
                       >
@@ -374,7 +417,9 @@ const Page = () => {
                           </button>
 
                           <button
-                            onClick={() => handleDelete(article.id, "published")}
+                            onClick={() =>
+                              handleDelete(article.id, "published")
+                            }
                             className="flex px-4 py-2.5 text-[14px] text-red-600 hover:bg-red-50 transition-colors items-center gap-3 w-full text-left"
                           >
                             <TrashIcon className="w-4 h-4 text-red-500" />

@@ -17,9 +17,7 @@ export default function Homepage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("explore");
 
-
-  const { likes, bookmarks, toggleLike, toggleBookmark } =
-    useUserActions(user);
+  const { likes, bookmarks, toggleLike, toggleBookmark } = useUserActions(user);
 
   /* ================= FETCH ARTICLES ================= */
   useEffect(() => {
@@ -29,7 +27,8 @@ export default function Homepage() {
 
         const { data, error } = await supabase
           .from("articles")
-          .select(`
+          .select(
+            `
             *,
             users (
               id,
@@ -37,7 +36,8 @@ export default function Homepage() {
               username,
               avatar
             )
-          `)
+          `,
+          )
           .eq("status", "published")
           .order("updated_at", { ascending: false })
           .limit(10);
@@ -50,6 +50,9 @@ export default function Homepage() {
           author_username: article.users?.username || article.users?.id,
           author_avatar: article.users?.avatar
             ? getImageUrl(article.users.avatar)
+            : null,
+          thumbnail: article.cover_image
+            ? getImageUrl(article.cover_image)
             : null,
         }));
 
@@ -70,9 +73,7 @@ export default function Homepage() {
 
     if (path.startsWith("http")) return path;
 
-    const { data } = supabase.storage
-      .from("article-images")
-      .getPublicUrl(path);
+    const { data } = supabase.storage.from("article-images").getPublicUrl(path);
 
     return data.publicUrl;
   };
@@ -81,20 +82,19 @@ export default function Homepage() {
   return (
     <div className="w-full">
       <div className="w-full max-w-[1200px] mx-auto px-4 flex gap-10">
-
         {/* LEFT */}
         <div className="flex-1 pt-4">
-
           {/* Tabs */}
           <div className="border-b border-gray-200 mb-8 flex gap-8">
             {["for-you", "explore"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`pb-2 text-sm ${activeTab === tab
-                  ? "text-black border-b-2 border-black"
-                  : "text-gray-500"
-                  }`}
+                className={`pb-2 text-sm ${
+                  activeTab === tab
+                    ? "text-black border-b-2 border-black"
+                    : "text-gray-500"
+                }`}
               >
                 {tab === "explore" ? "Explore" : "For You"}
               </button>
@@ -115,7 +115,9 @@ export default function Homepage() {
                     key={article.id}
                     article={{
                       ...article,
-                      thumbnail: article.cover_image,
+                      thumbnail: article.cover_image
+                        ? getImageUrl(article.cover_image)
+                        : null,
                     }}
                     isLiked={likes.has(article.id)}
                     isBookmarked={bookmarks.has(article.id)}
@@ -147,7 +149,6 @@ export default function Homepage() {
             <RecomendedTopics />
           </div>
         </div>
-
       </div>
     </div>
   );

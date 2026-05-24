@@ -22,8 +22,7 @@ export default function Page() {
   const searchParams = useSearchParams();
 
   const { user } = useAuthContext();
-  const { likes, bookmarks, toggleLike, toggleBookmark } =
-    useUserActions(user);
+  const { likes, bookmarks, toggleLike, toggleBookmark } = useUserActions(user);
 
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,9 +34,7 @@ export default function Page() {
     if (!path) return null;
     if (path.startsWith("http")) return path;
 
-    const { data } = supabase.storage
-      .from("article-images")
-      .getPublicUrl(path);
+    const { data } = supabase.storage.from("article-images").getPublicUrl(path);
 
     return data.publicUrl;
   };
@@ -63,7 +60,8 @@ export default function Page() {
       try {
         let query = supabase
           .from("articles")
-          .select(`
+          .select(
+            `
             *,
             users (
               id,
@@ -71,7 +69,8 @@ export default function Page() {
               username,
               avatar
             )
-          `)
+          `,
+          )
           .eq("status", "published")
           .order("updated_at", { ascending: false })
           .limit(20);
@@ -92,7 +91,9 @@ export default function Page() {
           author_avatar: article.users?.avatar
             ? getImageUrl(article.users.avatar)
             : null,
-          thumbnail: getImageUrl(article.cover_image),
+          thumbnail: article.cover_image
+            ? getImageUrl(article.cover_image)
+            : null,
         }));
 
         setArticles(formatted);
@@ -111,7 +112,7 @@ export default function Page() {
     setActiveCategories((prev) =>
       prev.includes(category)
         ? prev.filter((c) => c !== category)
-        : [...prev, category]
+        : [...prev, category],
     );
   };
 
@@ -128,10 +129,11 @@ export default function Page() {
             <button
               key={cat}
               onClick={() => toggleCategory(cat)}
-              className={`px-4 py-1.5 rounded-full text-sm border transition ${active
-                ? "bg-black text-white border-black"
-                : "bg-white text-gray-700 border-gray-300 hover:border-black"
-                }`}
+              className={`px-4 py-1.5 rounded-full text-sm border transition ${
+                active
+                  ? "bg-black text-white border-black"
+                  : "bg-white text-gray-700 border-gray-300 hover:border-black"
+              }`}
             >
               {cat}
             </button>
@@ -140,9 +142,7 @@ export default function Page() {
       </div>
 
       {loading &&
-        Array.from({ length: 5 }).map((_, i) => (
-          <ShimmerArticle key={i} />
-        ))}
+        Array.from({ length: 5 }).map((_, i) => <ShimmerArticle key={i} />)}
 
       {!loading && articles.length === 0 && (
         <p className="text-sm text-gray-500">

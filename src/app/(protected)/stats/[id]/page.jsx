@@ -15,7 +15,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Area,
-  AreaChart
+  AreaChart,
 } from "recharts";
 
 export default function AnalyticsPage() {
@@ -26,6 +26,9 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [chartData, setChartData] = useState([]);
   const [referrerData, setReferrerData] = useState([]);
+  const [utmData, setUtmData] = useState([]);
+  const [deviceData, setDeviceData] = useState([]);
+  const [locationData, setLocationData] = useState([]);
 
   useEffect(() => {
     if (!user || !id) return;
@@ -35,38 +38,52 @@ export default function AnalyticsPage() {
       try {
         const { data, error } = await supabase
           .from("articles")
-          .select(`
+          .select(
+            `
             *,
-            views(created_at, referrer),
-            likes(created_at),
-            bookmarks(created_at)
-          `)
+            views(*),
+            likes(*),
+            bookmarks(*)
+          `,
+          )
           .eq("id", id)
-          .eq("author_id", user.id)
           .single();
 
         if (error) throw error;
+
+        if (data?.author_id !== user?.id) {
+          setArticle(null);
+          setLoading(false);
+          return;
+        }
 
         setArticle(data);
 
         // Process views for the chart
         if (data && data.views) {
           // Sort views by date
-          const sortedViews = [...data.views].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+          const sortedViews = [...data.views].sort(
+            (a, b) => new Date(a.created_at) - new Date(b.created_at),
+          );
           const orderedViewsByDate = sortedViews.reduce((acc, view) => {
-            const dateStr = new Date(view.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            const dateStr = new Date(view.created_at).toLocaleDateString(
+              "en-US",
+              { month: "short", day: "numeric" },
+            );
             acc[dateStr] = (acc[dateStr] || 0) + 1;
             return acc;
           }, {});
 
-          setChartData(Object.keys(orderedViewsByDate).map(date => ({
-            date,
-            views: orderedViewsByDate[date]
-          })));
+          setChartData(
+            Object.keys(orderedViewsByDate).map((date) => ({
+              date,
+              views: orderedViewsByDate[date],
+            })),
+          );
 
           // Process referrer data
           const referrerCounts = sortedViews.reduce((acc, view) => {
-            const source = view.referrer || 'Direct / Unknown';
+            const source = view.referrer || "Direct / Unknown";
             acc[source] = (acc[source] || 0) + 1;
             return acc;
           }, {});
@@ -76,8 +93,40 @@ export default function AnalyticsPage() {
             .sort((a, b) => b.count - a.count);
 
           setReferrerData(sortedReferrers);
-        }
 
+          const utmCounts = sortedViews.reduce((acc, view) => {
+            const source = view.utm_source || "Direct / Unknown";
+            acc[source] = (acc[source] || 0) + 1;
+            return acc;
+          }, {});
+          setUtmData(
+            Object.entries(utmCounts)
+              .map(([source, count]) => ({ source, count }))
+              .sort((a, b) => b.count - a.count),
+          );
+
+          const deviceCounts = sortedViews.reduce((acc, view) => {
+            const device = view.device_type || "Unknown";
+            acc[device] = (acc[device] || 0) + 1;
+            return acc;
+          }, {});
+          setDeviceData(
+            Object.entries(deviceCounts)
+              .map(([device, count]) => ({ device, count }))
+              .sort((a, b) => b.count - a.count),
+          );
+
+          const locationCounts = sortedViews.reduce((acc, view) => {
+            const location = view.location || "Unknown";
+            acc[location] = (acc[location] || 0) + 1;
+            return acc;
+          }, {});
+          setLocationData(
+            Object.entries(locationCounts)
+              .map(([location, count]) => ({ location, count }))
+              .sort((a, b) => b.count - a.count),
+          );
+        }
       } catch (error) {
         console.error("Error fetching analytics:", error);
       } finally {
@@ -99,8 +148,15 @@ export default function AnalyticsPage() {
   if (!article) {
     return (
       <div className="w-full bg-white min-h-screen pt-24 text-center">
-        <p className="text-black text-xl font-bold font-creato">Article not found</p>
-        <button onClick={() => router.back()} className="text-gray-500 mt-4 underline">Go Back</button>
+        <p className="text-black text-xl font-bold font-creato">
+          Article not found
+        </p>
+        <button
+          onClick={() => router.back()}
+          className="text-gray-500 mt-4 underline"
+        >
+          Go Back
+        </button>
       </div>
     );
   }
@@ -112,7 +168,6 @@ export default function AnalyticsPage() {
   return (
     <div className="w-full bg-white min-h-screen pb-20">
       <div className="max-w-4xl mx-auto px-4 md:px-6 pt-16 font-creato">
-
         {/* Back Button */}
         <button
           onClick={() => router.back()}
@@ -129,9 +184,16 @@ export default function AnalyticsPage() {
               <Image src={article.cover_image || '/placeholder.png'} fill={true} alt={article.title} className="object-cover" />
             </div> */}
             <div>
-              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-black line-clamp-2 leading-tight">{article.title}</h1>
+              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-black line-clamp-2 leading-tight">
+                {article.title}
+              </h1>
               <p className="text-[13px] text-gray-500 mt-">
-                Published on {new Date(article.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+                Published on{" "}
+                {new Date(article.created_at).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
               </p>
             </div>
           </div>
@@ -148,7 +210,9 @@ export default function AnalyticsPage() {
               {/* <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
                 <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
               </div> */}
-              <p className="text-[14px] text-gray-500 font-medium">Total Views</p>
+              <p className="text-[14px] text-gray-500 font-medium">
+                Total Views
+              </p>
             </div>
             <p className="text-4xl font-bold text-black">{totalViews}</p>
           </div>
@@ -158,7 +222,9 @@ export default function AnalyticsPage() {
               {/* <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center">
                 <div className="w-3 h-3 bg-red-500 rounded-full"></div>
               </div> */}
-              <p className="text-[14px] text-gray-500 font-medium">Total Likes</p>
+              <p className="text-[14px] text-gray-500 font-medium">
+                Total Likes
+              </p>
             </div>
             <p className="text-4xl font-bold text-black">{totalLikes}</p>
           </div>
@@ -176,34 +242,52 @@ export default function AnalyticsPage() {
 
         {/* Chart Section */}
         <div className="w-full bg-white  mt-20">
-          <h2 className="text-xl font-semibold text-black mb-8">Views Over Time</h2>
+          <h2 className="text-xl font-semibold text-black mb-8">
+            Views Over Time
+          </h2>
 
           <div className="w-full h-[350px]">
             {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <AreaChart
+                  data={chartData}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                >
                   <defs>
                     <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#000000" stopOpacity={0.1} />
                       <stop offset="95%" stopColor="#000000" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="#E5E7EB"
+                  />
                   <XAxis
                     dataKey="date"
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: '#6B7280', fontSize: 13 }}
+                    tick={{ fill: "#6B7280", fontSize: 13 }}
                     dy={10}
                   />
                   <YAxis
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: '#6B7280', fontSize: 13 }}
+                    tick={{ fill: "#6B7280", fontSize: 13 }}
                   />
                   <Tooltip
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}
-                    cursor={{ stroke: '#9CA3AF', strokeWidth: 1, strokeDasharray: '3 3' }}
+                    contentStyle={{
+                      borderRadius: "12px",
+                      border: "none",
+                      boxShadow:
+                        "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+                    }}
+                    cursor={{
+                      stroke: "#9CA3AF",
+                      strokeWidth: 1,
+                      strokeDasharray: "3 3",
+                    }}
                   />
                   <Area
                     type="monotone"
@@ -212,7 +296,12 @@ export default function AnalyticsPage() {
                     strokeWidth={2}
                     fillOpacity={1}
                     fill="url(#colorViews)"
-                    activeDot={{ r: 6, fill: "#000000", stroke: "#ffffff", strokeWidth: 2 }}
+                    activeDot={{
+                      r: 6,
+                      fill: "#000000",
+                      stroke: "#ffffff",
+                      strokeWidth: 2,
+                    }}
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -226,27 +315,35 @@ export default function AnalyticsPage() {
 
         {/* Traffic Sources Section */}
         <div className="w-full bg-white mt-16">
-          <h2 className="text-xl font-semibold text-black mb-8">Traffic Sources</h2>
+          <h2 className="text-xl font-semibold text-black mb-8">
+            Traffic Sources
+          </h2>
 
           {referrerData.length > 0 ? (
             <div className="space-y-4">
               {referrerData.map((item, index) => {
                 const maxCount = referrerData[0].count;
-                const percentage = totalViews > 0 ? ((item.count / totalViews) * 100).toFixed(1) : 0;
-                const barWidth = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
+                const percentage =
+                  totalViews > 0
+                    ? ((item.count / totalViews) * 100).toFixed(1)
+                    : 0;
+                const barWidth =
+                  maxCount > 0 ? (item.count / maxCount) * 100 : 0;
 
                 return (
                   <div key={index} className="group">
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2">
-                        {item.source !== 'Direct / Unknown' && (
+                        {item.source !== "Direct / Unknown" && (
                           <Image
                             src={`https://www.google.com/s2/favicons?domain=${item.source}&sz=32`}
                             alt=""
                             width={16}
                             height={16}
                             className="w-4 h-4 rounded-sm"
-                            onError={(e) => { e.target.style.display = 'none'; }}
+                            onError={(e) => {
+                              e.target.style.display = "none";
+                            }}
                           />
                         )}
                         <p className="text-[14px] text-black font-medium">
@@ -254,8 +351,12 @@ export default function AnalyticsPage() {
                         </p>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-[13px] text-gray-400 font-medium">{percentage}%</span>
-                        <span className="text-[14px] text-black font-semibold w-8 text-right">{item.count}</span>
+                        <span className="text-[13px] text-gray-400 font-medium">
+                          {percentage}%
+                        </span>
+                        <span className="text-[14px] text-black font-semibold w-8 text-right">
+                          {item.count}
+                        </span>
                       </div>
                     </div>
                     <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -271,11 +372,137 @@ export default function AnalyticsPage() {
           ) : (
             <div className="w-full py-12 flex flex-col items-center justify-center text-gray-400">
               <p>No referral data recorded yet.</p>
-              <p className="text-[13px] mt-1">Traffic sources will appear as people visit your article.</p>
+              <p className="text-[13px] mt-1">
+                Traffic sources will appear as people visit your article.
+              </p>
             </div>
           )}
         </div>
 
+        <div className="grid grid-cols-1 gap-6 mt-16 md:grid-cols-2">
+          <div className="w-full bg-white rounded-3xl p-6 border border-gray-100">
+            <h2 className="text-xl font-semibold text-black mb-6">
+              UTM Sources
+            </h2>
+            {utmData.length > 0 ? (
+              <div className="space-y-4">
+                {utmData.map((item, index) => {
+                  const percentage =
+                    totalViews > 0
+                      ? ((item.count / totalViews) * 100).toFixed(1)
+                      : 0;
+                  return (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between gap-4"
+                    >
+                      <div>
+                        <p className="text-[14px] text-black font-medium">
+                          {item.source}
+                        </p>
+                        <p className="text-[13px] text-gray-500">
+                          {item.count} visits
+                        </p>
+                      </div>
+                      <span className="text-[13px] text-gray-400">
+                        {percentage}%
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="py-12 text-center text-gray-400">
+                <p>No UTM source data available yet.</p>
+                <p className="text-[13px] mt-1">
+                  Add UTM tags to links to track campaign performance.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="w-full bg-white rounded-3xl p-6 border border-gray-100">
+            <h2 className="text-xl font-semibold text-black mb-6">
+              Device Breakdown
+            </h2>
+            {deviceData.length > 0 ? (
+              <div className="space-y-4">
+                {deviceData.map((item, index) => {
+                  const percentage =
+                    totalViews > 0
+                      ? ((item.count / totalViews) * 100).toFixed(1)
+                      : 0;
+                  return (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between gap-4"
+                    >
+                      <div>
+                        <p className="text-[14px] text-black font-medium">
+                          {item.device}
+                        </p>
+                        <p className="text-[13px] text-gray-500">
+                          {item.count} views
+                        </p>
+                      </div>
+                      <span className="text-[13px] text-gray-400">
+                        {percentage}%
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="py-12 text-center text-gray-400">
+                <p>No device data recorded yet.</p>
+                <p className="text-[13px] mt-1">
+                  Device types will show once readers arrive.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="w-full bg-white rounded-3xl p-6 border border-gray-100 mt-6">
+          <h2 className="text-xl font-semibold text-black mb-6">
+            Top Locations
+          </h2>
+          {locationData.length > 0 ? (
+            <div className="space-y-4">
+              {locationData.map((item, index) => {
+                const percentage =
+                  totalViews > 0
+                    ? ((item.count / totalViews) * 100).toFixed(1)
+                    : 0;
+                return (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between gap-4"
+                  >
+                    <div>
+                      <p className="text-[14px] text-black font-medium">
+                        {item.location}
+                      </p>
+                      <p className="text-[13px] text-gray-500">
+                        {item.count} views
+                      </p>
+                    </div>
+                    <span className="text-[13px] text-gray-400">
+                      {percentage}%
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="py-12 text-center text-gray-400">
+              <p>No location data recorded yet.</p>
+              <p className="text-[13px] mt-1">
+                Location will appear when readers load the page.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

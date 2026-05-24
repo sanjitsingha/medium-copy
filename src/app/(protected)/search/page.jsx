@@ -19,17 +19,14 @@ const Page = () => {
   const [loading, setLoading] = useState(false);
   const [searchInput, setSearchInput] = useState(query);
 
-  const { likes, bookmarks, toggleLike, toggleBookmark } =
-    useUserActions(user);
+  const { likes, bookmarks, toggleLike, toggleBookmark } = useUserActions(user);
 
   /* ================= IMAGE HELPER ================= */
   const getImageUrl = (path) => {
     if (!path) return null;
     if (path.startsWith("http")) return path;
 
-    const { data } = supabase.storage
-      .from("article-images")
-      .getPublicUrl(path);
+    const { data } = supabase.storage.from("article-images").getPublicUrl(path);
 
     return data.publicUrl;
   };
@@ -47,13 +44,15 @@ const Page = () => {
       try {
         const { data, error } = await supabase
           .from("articles")
-          .select(`*,
+          .select(
+            `*,
             users(
               id,
               name,
               avatar
           )
-            `)
+            `,
+          )
           .eq("status", "published")
           .order("updated_at", { ascending: false })
           .limit(50);
@@ -62,7 +61,7 @@ const Page = () => {
 
         const filtered = (data || [])
           .filter((article) =>
-            article.title?.toLowerCase().includes(query.toLowerCase())
+            article.title?.toLowerCase().includes(query.toLowerCase()),
           )
           .map((article) => ({
             ...article,
@@ -84,13 +83,11 @@ const Page = () => {
     fetchSearchResults();
   }, [query, showSearchUI]);
 
-
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (!searchInput.trim()) return;
     router.push(`/search?q=${encodeURIComponent(searchInput.trim())}`);
   };
-
 
   console.log("Search results:", articles);
   return (
@@ -170,7 +167,6 @@ const Page = () => {
                   onBookmark={toggleBookmark}
                 />
               ))}
-
           </div>
         )}
       </div>
