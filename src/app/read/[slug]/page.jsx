@@ -173,15 +173,48 @@ export default function ReadArticlePage() {
 
     const trackView = async () => {
       const storageKey = `viewed_${article.id}`;
-      if (localStorage.getItem(storageKey)) return;
+      const lastLocalView = parseInt(localStorage.getItem(storageKey), 10) || 0;
+      const now = Date.now();
+      const FIVE_MINUTES = 5 * 60 * 1000;
+      let shouldTrack = true;
+      let uniqueUser = false;
 
-      localStorage.setItem(storageKey, "true");
+      if (user?.id) {
+        const { data: lastView, error: lastViewError } = await supabase
+          .from("views")
+          .select("created_at")
+          .eq("article_id", article.id)
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (lastViewError) {
+          console.error("VIEW QUERY ERROR:", lastViewError);
+        }
+
+        uniqueUser = !lastView?.created_at;
+
+        if (lastView?.created_at) {
+          const lastViewTime = new Date(lastView.created_at).getTime();
+          if (now - lastViewTime < FIVE_MINUTES) {
+            shouldTrack = false;
+          }
+        }
+      } else {
+        if (now - lastLocalView < FIVE_MINUTES) {
+          shouldTrack = false;
+        }
+      }
+
+      if (!shouldTrack) return;
+
       const meta = await buildAnalyticsPayload();
-
       const { error } = await supabase.from("views").insert([
         {
           article_id: article.id,
           user_id: user?.id || null,
+          unique_user: uniqueUser,
           ...meta,
         },
       ]);
@@ -189,6 +222,8 @@ export default function ReadArticlePage() {
       if (error && error.code !== "23505") {
         console.error("VIEW ERROR:", error);
       }
+
+      localStorage.setItem(storageKey, now.toString());
     };
 
     trackView();
