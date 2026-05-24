@@ -36,33 +36,43 @@ export default function AnalyticsPage() {
     const fetchAnalytics = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
+        const { data: articleData, error: articleError } = await supabase
           .from("articles")
-          .select(
-            `
-            *,
-            views(*),
-            likes(*),
-            bookmarks(*)
-          `,
-          )
+          .select("*")
           .eq("id", id)
           .single();
 
-        if (error) throw error;
-
-        if (data?.author_id !== user?.id) {
+        if (articleError) throw articleError;
+        if (articleData?.author_id !== user?.id) {
           setArticle(null);
           setLoading(false);
           return;
         }
 
-        setArticle(data);
+        const [
+          { data: viewsData },
+          { data: likesData },
+          { data: bookmarksData },
+        ] = await Promise.all([
+          supabase.from("views").select("*").eq("article_id", id),
+          supabase.from("likes").select("*").eq("article_id", id),
+          supabase.from("bookmarks").select("*").eq("article_id", id),
+        ]);
+
+        const views = viewsData || [];
+        const likes = likesData || [];
+        const bookmarks = bookmarksData || [];
+
+        setArticle({
+          ...articleData,
+          views,
+          likes,
+          bookmarks,
+        });
 
         // Process views for the chart
-        if (data && data.views) {
-          // Sort views by date
-          const sortedViews = [...data.views].sort(
+        if (views.length > 0) {
+          const sortedViews = [...views].sort(
             (a, b) => new Date(a.created_at) - new Date(b.created_at),
           );
           const orderedViewsByDate = sortedViews.reduce((acc, view) => {

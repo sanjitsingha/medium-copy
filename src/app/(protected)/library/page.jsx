@@ -258,7 +258,7 @@ const Page = () => {
                         width={600}
                         height={400}
                         alt={item.articles.title}
-                        className="object-cover rounded w-28 h-28 border border-gray-100"
+                        className="object-cover rounded h-[120px] w-[200px] border border-gray-100"
                       />
                     </div>
 

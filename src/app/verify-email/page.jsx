@@ -33,11 +33,12 @@ export default function VerifyPending() {
       setLoading(true);
       setMsg("");
 
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
       const { error } = await supabase.auth.resend({
         type: "signup",
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${appUrl}/auth/callback`,
         },
       });
 
@@ -81,7 +82,11 @@ export default function VerifyPending() {
         disabled={loading || cooldown > 0 || !email}
         className="bg-black text-white px-6 py-2 rounded-full disabled:opacity-60"
       >
-        {loading ? "Sending..." : cooldown > 0 ? `Wait ${cooldown}s` : "Resend Email"}
+        {loading
+          ? "Sending..."
+          : cooldown > 0
+            ? `Wait ${cooldown}s`
+            : "Resend Email"}
       </button>
 
       {msg && <p className="text-sm mt-4 text-green-600">{msg}</p>}

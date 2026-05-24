@@ -62,7 +62,11 @@ export default function StatsPage() {
 
   const [publishedArticles, setPublishedArticles] = useState([]);
   const [draftArticles, setDraftArticles] = useState([]);
-  const [stats, setStats] = useState({ totalViews: 0, totalLikes: 0 });
+  const [stats, setStats] = useState({
+    totalViews: 0,
+    totalLikes: 0,
+    totalBookmarks: 0,
+  });
   const [topStory, setTopStory] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -114,9 +118,7 @@ export default function StatsPage() {
           supabase
             .from("likes")
             .select("*", { count: "exact", head: true })
-            .eq("article_id", article.id)
-            .gte("created_at", rangeStart)
-            .lte("created_at", rangeEnd),
+            .eq("article_id", article.id),
         ]);
         return { ...article, vCount: vCount ?? 0, lCount: lCount ?? 0 };
       }),
@@ -124,11 +126,20 @@ export default function StatsPage() {
 
     const totalViews = enriched.reduce((s, a) => s + a.vCount, 0);
     const totalLikes = enriched.reduce((s, a) => s + a.lCount, 0);
+    const publishedIds = published.map((a) => a.id);
+
+    let totalBookmarks = 0;
+    if (publishedIds.length > 0) {
+      const { count: bCount } = await supabase
+        .from("bookmarks")
+        .select("*", { count: "exact", head: true })
+        .in("article_id", publishedIds);
+      totalBookmarks = bCount ?? 0;
+    }
 
     // ── Generate Chart Data ──
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const now = new Date();
-    const publishedIds = published.map((a) => a.id);
 
     if (activeRange === "7d" && publishedIds.length > 0) {
       const last7 = [];
@@ -184,7 +195,7 @@ export default function StatsPage() {
         null,
       ),
     );
-    setStats({ totalViews, totalLikes });
+    setStats({ totalViews, totalLikes, totalBookmarks });
     setLoading(false);
   }, [user, activeRange, customFrom, customTo]);
 
@@ -299,7 +310,7 @@ export default function StatsPage() {
         ) : (
           <>
             {/* Stat Cards */}
-            <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="w-full grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
               <div className="py-6 px-5">
                 <p className="text-[13px] text-gray-500 mb-1 tracking-wide uppercase">
                   Stories Published
@@ -322,6 +333,14 @@ export default function StatsPage() {
                 </p>
                 <p className="text-4xl font-bold text-black tracking-tight">
                   {stats.totalLikes}
+                </p>
+              </div>
+              <div className="py-6 px-5">
+                <p className="text-[13px] text-gray-500 mb-1 tracking-wide uppercase">
+                  Bookmarks
+                </p>
+                <p className="text-4xl font-bold text-black tracking-tight">
+                  {stats.totalBookmarks}
                 </p>
               </div>
             </div>

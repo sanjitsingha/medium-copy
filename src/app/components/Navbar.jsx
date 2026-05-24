@@ -8,11 +8,13 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { supabase } from "@/lib/supabaseClient";
 
-
 import { MdArrowOutward } from "react-icons/md";
 import { CiSearch } from "react-icons/ci";
 import { HiMenuAlt2, HiX } from "react-icons/hi";
-import { PencilSquareIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import {
+  PencilSquareIcon,
+  ExclamationTriangleIcon,
+} from "@heroicons/react/24/outline";
 import {
   HomeIcon,
   UserIcon,
@@ -24,33 +26,29 @@ import {
 const Navbar = () => {
   const { user, loading, setUser } = useAuthContext();
   const router = useRouter();
-const [profile, setProfile] = useState(null)
+  const [profile, setProfile] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
 
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: authData } = await supabase.auth.getUser();
 
+      if (!authData?.user) return;
 
- useEffect(() => {
-  const fetchProfile = async () => {
-    const { data: authData } = await supabase.auth.getUser();
+      const { data } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", authData.user.id)
+        .single();
 
-    if (!authData?.user) return;
+      setProfile(data);
+    };
 
-    const { data } = await supabase
-      .from("users")
-      .select("*")
-      .eq("id", authData.user.id)
-      .single();
+    fetchProfile();
+  }, []);
 
-    setProfile(data);
-  };
-
-  fetchProfile();
-}, []);
-
-
-// console.log("USER PROFILE:", profile)
-
+  // console.log("USER PROFILE:", profile)
 
   // const handleLogout = async () => {
   //   await logoutUser();
@@ -83,8 +81,6 @@ const [profile, setProfile] = useState(null)
                 width={100}
                 height={100}
               />
-
-              
             </Link>
 
             {/* Desktop search */}
@@ -103,7 +99,11 @@ const [profile, setProfile] = useState(null)
                   placeholder="Search topics"
                   className="outline-none text-sm w-[260px] text-black bg-gray-200 py-2 px-3 rounded-full"
                 />
-                <CiSearch className="absolute right-3" color="black" size={18} />
+                <CiSearch
+                  className="absolute right-3"
+                  color="black"
+                  size={18}
+                />
               </div>
             )}
           </div>
@@ -131,16 +131,20 @@ const [profile, setProfile] = useState(null)
 
             {!loading && user && (
               <>
-              {/* <Link href={"/report-bug"} className="hidden md:flex items-center py-1 gap-2 border px-4 rounded bg-yellow-100 border-yellow-300 text-sm">
-               <ExclamationTriangleIcon className="size-5 text-yellow-700" />
-                <p className="font-creato text-yellow-700">Report Bug</p>
-              </Link> */}
                 <Link
                   href="/write"
                   className="hidden md:flex items-center gap-2 border-r pr-6 border-gray-300 text-sm"
                 >
                   <PencilSquareIcon className="size-5 text-black/60" />
                   <span className="text-black/70">Write</span>
+                </Link>
+
+                <Link
+                  href={"/report-bug"}
+                  className="hidden md:flex items-center  gap-2   rounded  text-sm"
+                >
+                  <ExclamationTriangleIcon className="size-5 text-yellow-700" />
+                  <p className="font-creato text-yellow-700">Report Bug</p>
                 </Link>
 
                 <Link href="/profile">
@@ -177,27 +181,47 @@ const [profile, setProfile] = useState(null)
             </div>
 
             <nav className="flex flex-col gap-6 text-sm">
-              <Link className="flex gap-2 text-gray-700 items-center" href="/" onClick={() => setSidebarOpen(false)}>
-                <HomeIcon className="size-5"/> Home
+              <Link
+                className="flex gap-2 text-gray-700 items-center"
+                href="/"
+                onClick={() => setSidebarOpen(false)}
+              >
+                <HomeIcon className="size-5" /> Home
               </Link>
 
-              <Link className="flex gap-2 items-center text-gray-700" href="/library" onClick={() => setSidebarOpen(false)}>
-                <BookOpenIcon className="size-5"/>
+              <Link
+                className="flex gap-2 items-center text-gray-700"
+                href="/library"
+                onClick={() => setSidebarOpen(false)}
+              >
+                <BookOpenIcon className="size-5" />
                 Library
               </Link>
 
-              <Link className="text-gray-700 flex gap-2 items-center" href="/profile" onClick={() => setSidebarOpen(false)}>
-              <UserIcon className="size-5"/>
+              <Link
+                className="text-gray-700 flex gap-2 items-center"
+                href="/profile"
+                onClick={() => setSidebarOpen(false)}
+              >
+                <UserIcon className="size-5" />
                 Profile
               </Link>
 
-              <Link className="text-gray-700 flex gap-2 items-center" href="/stories" onClick={() => setSidebarOpen(false)}>
-                <QueueListIcon className="size-5"/>
+              <Link
+                className="text-gray-700 flex gap-2 items-center"
+                href="/stories"
+                onClick={() => setSidebarOpen(false)}
+              >
+                <QueueListIcon className="size-5" />
                 Stories
               </Link>
 
-              <Link className="text-gray-700 flex gap-2 items-center" href="/stats" onClick={() => setSidebarOpen(false)}>
-              <ChartBarIcon className="size-5"/>
+              <Link
+                className="text-gray-700 flex gap-2 items-center"
+                href="/stats"
+                onClick={() => setSidebarOpen(false)}
+              >
+                <ChartBarIcon className="size-5" />
                 Stats
               </Link>
 
