@@ -1,6 +1,6 @@
 "use client";
 import { ArrowTrendingUpIcon } from "@heroicons/react/24/outline";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import { supabase } from "@/lib/supabaseClient";
 import { RxShare2 } from "react-icons/rx";
@@ -9,15 +9,7 @@ import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { HiOutlineDotsHorizontal } from "react-icons/hi";
 import { useAuthContext } from "@/context/AuthContext";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import Chart from "chart.js/auto";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -207,6 +199,71 @@ export default function StatsPage() {
     return () => window.clearTimeout(timer);
   }, [fetchAllArticles]);
 
+  // Chart.js refs and rendering
+  const chartRef = useRef(null);
+  const chartInstanceRef = useRef(null);
+
+  useEffect(() => {
+    if (!chartRef.current) return;
+
+    const labels = chartData.map((d) => d.name);
+    const data = {
+      labels,
+      datasets: [
+        {
+          label: "Views",
+          data: chartData.map((d) => d.views || 0),
+          backgroundColor: labels.map((_, i) => {
+            const palette = [
+              "#4F46E5",
+              "#06B6D4",
+              "#F59E0B",
+              "#EF4444",
+              "#10B981",
+              "#8B5CF6",
+              "#F97316",
+            ];
+            return palette[i % palette.length];
+          }),
+          borderColor: "rgba(0,0,0,0.05)",
+          borderWidth: 1,
+        },
+      ],
+    };
+
+    const options = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { mode: "index", intersect: false },
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: "#6B7280" } },
+        y: { beginAtZero: true, ticks: { color: "#6B7280" } },
+      },
+    };
+
+    if (chartInstanceRef.current) {
+      chartInstanceRef.current.destroy();
+    }
+
+    const ctx = chartRef.current.getContext("2d");
+    chartInstanceRef.current = new Chart(ctx, {
+      type: "bar",
+      data,
+      options,
+    });
+
+    return () => {
+      if (chartInstanceRef.current) chartInstanceRef.current.destroy();
+    };
+  }, [chartData]);
+
+  
+
+  
+
   // ── Helpers ────────────────────────────────────────────────────────────────
 
   const getImageUrl = (path) => {
@@ -302,6 +359,8 @@ export default function StatsPage() {
                 Apply
               </button>
             </div>
+
+            
           )}
         </div>
 
@@ -313,7 +372,7 @@ export default function StatsPage() {
             <div className="w-full grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
               <div className="py-6 px-5">
                 <p className="text-[13px] text-gray-500 mb-1 tracking-wide uppercase">
-                  Stories Published
+                  Published
                 </p>
                 <p className="text-4xl font-bold text-black tracking-tight">
                   {publishedArticles.length}
@@ -373,57 +432,9 @@ export default function StatsPage() {
                 Views Over Time
               </h2>
               <div className="h-[250px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart
-                    data={chartData}
-                    margin={{ top: 10, right: 0, left: -20, bottom: 0 }}
-                  >
-                    <defs>
-                      <linearGradient
-                        id="colorViews"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                      >
-                        <stop offset="5%" stopColor="#000" stopOpacity={0.1} />
-                        <stop offset="95%" stopColor="#000" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      vertical={false}
-                      stroke="#f0f0f0"
-                    />
-                    <XAxis
-                      dataKey="name"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 12, fill: "#888" }}
-                      dy={10}
-                    />
-                    <YAxis
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 12, fill: "#888" }}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        borderRadius: "8px",
-                        border: "none",
-                        boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                      }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="views"
-                      stroke="#000"
-                      strokeWidth={2}
-                      fillOpacity={1}
-                      fill="url(#colorViews)"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
+                <div className="h-full w-full">
+                  <canvas ref={chartRef} />
+                </div>
               </div>
             </div>
 

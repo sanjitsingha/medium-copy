@@ -1,22 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuthContext } from "@/context/AuthContext";
 import Image from "next/image";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Area,
-  AreaChart,
-} from "recharts";
+import Chart from "chart.js/auto";
 
 export default function AnalyticsPage() {
   const { id } = useParams();
@@ -29,6 +19,23 @@ export default function AnalyticsPage() {
   const [utmData, setUtmData] = useState([]);
   const [deviceData, setDeviceData] = useState([]);
   const [locationData, setLocationData] = useState([]);
+  const chartRef = useRef(null);
+  const chartInstanceRef = useRef(null);
+
+  const downloadCSV = () => {
+    if (!chartData || chartData.length === 0) return;
+    const rows = [["date", "views"], ...chartData.map((r) => [r.date, r.views])];
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${article?.slug || id}-views.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
 
   useEffect(() => {
     if (!user || !id) return;
@@ -147,6 +154,53 @@ export default function AnalyticsPage() {
     fetchAnalytics();
   }, [id, user]);
 
+  useEffect(() => {
+    if (!chartRef.current) return;
+    const labels = chartData.map((d) => d.date);
+    const data = {
+      labels,
+      datasets: [
+        {
+          label: "Views",
+          data: chartData.map((d) => d.views || 0),
+          backgroundColor: labels.map((_, i) => [
+            "#06B6D4",
+            "#4F46E5",
+            "#F59E0B",
+            "#EF4444",
+            "#10B981",
+            "#8B5CF6",
+            "#F97316",
+          ][i % 7]),
+          borderColor: labels.map((_, i) => "rgba(0,0,0,0.06)"),
+          borderWidth: 1,
+          borderRadius: 8,
+          borderSkipped: false,
+        },
+      ],
+    };
+
+    const options = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { mode: "index", intersect: false } },
+      interaction: { mode: "index", intersect: false },
+      scales: {
+        x: { ticks: { color: "#6B7280" }, grid: { display: false } },
+        y: { ticks: { color: "#6B7280" }, beginAtZero: true, grid: { color: "#F3F4F6" } },
+      },
+      animation: { duration: 600, easing: "easeOutQuart" },
+    };
+
+    if (chartInstanceRef.current) chartInstanceRef.current.destroy();
+    const ctx = chartRef.current.getContext("2d");
+    chartInstanceRef.current = new Chart(ctx, { type: "bar", data, options });
+
+    return () => {
+      if (chartInstanceRef.current) chartInstanceRef.current.destroy();
+    };
+  }, [chartData]);
+
   if (loading) {
     return (
       <div className="w-full bg-white min-h-screen pt-24 text-center">
@@ -257,64 +311,22 @@ export default function AnalyticsPage() {
           </h2>
 
           <div className="w-full h-[350px]">
-            {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={chartData}
-                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+            <div className="flex items-center justify-between mb-4">
+            
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={downloadCSV}
+                  className="px-3 py-1.5 rounded-full text-sm border bg-white text-gray-700 border-gray-200"
                 >
-                  <defs>
-                    <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#000000" stopOpacity={0.1} />
-                      <stop offset="95%" stopColor="#000000" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    vertical={false}
-                    stroke="#E5E7EB"
-                  />
-                  <XAxis
-                    dataKey="date"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: "#6B7280", fontSize: 13 }}
-                    dy={10}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: "#6B7280", fontSize: 13 }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      borderRadius: "12px",
-                      border: "none",
-                      boxShadow:
-                        "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
-                    }}
-                    cursor={{
-                      stroke: "#9CA3AF",
-                      strokeWidth: 1,
-                      strokeDasharray: "3 3",
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="views"
-                    stroke="#000000"
-                    strokeWidth={2}
-                    fillOpacity={1}
-                    fill="url(#colorViews)"
-                    activeDot={{
-                      r: 6,
-                      fill: "#000000",
-                      stroke: "#ffffff",
-                      strokeWidth: 2,
-                    }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+                  Download CSV
+                </button>
+              </div>
+            </div>
+
+            {chartData.length > 0 ? (
+              <div className="w-full h-[290px]">
+                <canvas ref={chartRef} className="w-full h-full" />
+              </div>
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
                 <p>No views recorded yet.</p>

@@ -141,7 +141,7 @@ const Navbar = () => {
 
                 <Link
                   href={"/report-bug"}
-                  className="hidden md:flex items-center  gap-2   rounded  text-sm"
+                  className="hidden md:flex items-center  gap-2  border-r pr-6 border-gray-300  rounded  text-sm"
                 >
                   <ExclamationTriangleIcon className="size-5 text-yellow-700" />
                   <p className="font-creato text-yellow-700">Report Bug</p>
@@ -152,7 +152,7 @@ const Navbar = () => {
                     src={profile?.avatar || "/default-avatar.png"}
                     width={32}
                     height={32}
-                    className="w-8 h-8 p-[2px]  border-primary border  rounded-full object-cover"
+                    className="w-8 h-8 p-[2px]    rounded-full object-cover"
                     alt="avatar"
                   />
                 </Link>
