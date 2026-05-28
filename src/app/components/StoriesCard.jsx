@@ -16,7 +16,7 @@ const StoriesCard = ({ post }) => {
           src={imageUrl}
           width={600}
           height={400}
-          className="w-full h-[160px] md:h-[200px] object-cover rounded-sm"
+          className="w-full h-[200px] object-cover rounded-sm"
           alt={post.title}
         />
 

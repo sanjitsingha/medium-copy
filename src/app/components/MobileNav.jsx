@@ -16,7 +16,8 @@ export default function MobileNav() {
   return (
     <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-300 flex justify-around py-2">
       {menu.map((item) => {
-        const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+        const active =
+          item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
         const Icon = item.icon;
 
         return (

@@ -437,7 +437,7 @@ export default function ReadArticlePage() {
         </Link>
       </div>
 
-      <div className="md:static fixed bottom-0 left-0 w-full md:w-auto z-50 md:z-auto bg-white md:bg-transparent border-t md:border-t-0 md:border-b border-gray-100 py-3 md:py-2 px-6 md:px-0 md:mb-8 transition-all">
+      <div className="md:static fixed bottom-0 left-0 w-full md:w-auto z-10 md:z-auto bg-white md:bg-transparent border-t md:border-t-0 md:border-b border-gray-100 py-3 md:py-2 px-6 md:px-0 md:mb-8 transition-all">
         <div className="max-w-[800px] mx-auto w-full h-10 gap-6 flex justify-center md:justify-start items-center">
           <button
             title="like"

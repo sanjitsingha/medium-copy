@@ -9,6 +9,7 @@ import StoriesCardHorizontal from "../components/StoriesCardHorizontal";
 import ForYou from "../components/ForYou";
 import RecomendedTopics from "../components/RecomendedTopics";
 import useUserActions from "@/hooks/useUserActions";
+import Link from "next/link";
 
 export default function Homepage() {
   const { user } = useAuthContext();
@@ -147,6 +148,19 @@ export default function Homepage() {
             <br />
             <br />
             <RecomendedTopics />
+
+            <div className="h-full flex gap-4 mt-10 w-full">
+              <Link className="text-xs text-gray-500" href="/ad">
+                Rules
+              </Link>
+
+              <Link className="text-xs text-gray-500" href="/ad">
+                Advertise
+              </Link>
+              <Link className="text-xs text-gray-500" href="/ad">
+                Content Removal
+              </Link>
+            </div>
           </div>
         </div>
       </div>

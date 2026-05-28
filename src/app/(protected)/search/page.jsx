@@ -105,7 +105,7 @@ const Page = () => {
 
         {/* SEARCH BAR (shown when query is empty – mobile first) */}
         {showSearchUI && (
-          <div className="mt-12">
+          <div className="md:mt-12 mt-6">
             <p className="text-sm text-gray-500 mb-3">
               Search stories, ideas, or topics
             </p>

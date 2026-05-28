@@ -163,78 +163,92 @@ const Navbar = () => {
       </div>
 
       {/* ================= MOBILE SIDEBAR ================= */}
-      {sidebarOpen && (
-        <>
-          {/* Overlay */}
-          <div
-            onClick={() => setSidebarOpen(false)}
-            className="fixed inset-0 bg-black/40 z-40"
-          />
+      <>
+        {/* Overlay */}
+        <div
+          onClick={() => setSidebarOpen(false)}
+          className={`fixed inset-0 bg-black/40 z-40 touch-none transition-opacity duration-300 ${
+            sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
+        />
 
-          {/* Drawer */}
-          <div className="fixed top-0 left-0 h-full w-[260px] bg-white z-50 p-5 ">
-            <div className="flex justify-between items-center mb-12">
-              <p className="text-lg font-semibold">Menu</p>
-              <button onClick={() => setSidebarOpen(false)}>
-                <HiX size={24} />
-              </button>
-            </div>
+        {/* Drawer */}
+        <div
+          className={`fixed top-0 left-0 h-full w-[350px] bg-white z-50 p-5 transform transition-transform duration-300 ease-in-out ${
+            sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <div className="flex justify-between items-center mb-12">
+            <Link href="/" className="text-xl text-secondary font-semibold">
+              <Image
+                src="/vichento_logo_black.png"
+                alt="logo"
+                width={100}
+                height={100}
+              />
+            </Link>
+            <button
+              className="bg-gray-200 p-2 rounded-full"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <HiX size={24} />
+            </button>
+          </div>
 
-            <nav className="flex flex-col gap-6 text-sm">
-              <Link
-                className="flex gap-2 text-gray-700 items-center"
-                href="/"
-                onClick={() => setSidebarOpen(false)}
-              >
-                <HomeIcon className="size-5" /> Home
-              </Link>
+          <nav className="flex flex-col gap-6 text-lg">
+            <Link
+              className="flex gap-2 text-gray-700 text-lg items-center"
+              href="/"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <HomeIcon className="size-6" /> Home
+            </Link>
 
-              <Link
-                className="flex gap-2 items-center text-gray-700"
-                href="/library"
-                onClick={() => setSidebarOpen(false)}
-              >
-                <BookOpenIcon className="size-5" />
-                Library
-              </Link>
+            <Link
+              className="flex gap-2 items-center text-gray-700 text-lg"
+              href="/library"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <BookOpenIcon className="size-6" />
+              Library
+            </Link>
 
-              <Link
-                className="text-gray-700 flex gap-2 items-center"
-                href="/profile"
-                onClick={() => setSidebarOpen(false)}
-              >
-                <UserIcon className="size-5" />
-                Profile
-              </Link>
+            <Link
+              className="text-gray-700 flex gap-2 items-center text-lg"
+              href="/profile"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <UserIcon className="size-6" />
+              Profile
+            </Link>
 
-              <Link
-                className="text-gray-700 flex gap-2 items-center"
-                href="/stories"
-                onClick={() => setSidebarOpen(false)}
-              >
-                <QueueListIcon className="size-5" />
-                Stories
-              </Link>
+            <Link
+              className="text-gray-700 flex gap-2 items-center text-lg"
+              href="/stories"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <QueueListIcon className="size-6" />
+              Stories
+            </Link>
 
-              <Link
-                className="text-gray-700 flex gap-2 items-center"
-                href="/stats"
-                onClick={() => setSidebarOpen(false)}
-              >
-                <ChartBarIcon className="size-5" />
-                Stats
-              </Link>
+            <Link
+              className="text-gray-700 flex gap-2 items-center text-lg"
+              href="/stats"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <ChartBarIcon className="size-6" />
+              Stats
+            </Link>
 
-              {/* <button
+            {/* <button
                 onClick={handleLogout}
                 className="text-left text-red-600 mt-6"
               >
                 Logout
               </button> */}
-            </nav>
-          </div>
-        </>
-      )}
+          </nav>
+        </div>
+      </>
     </>
   );
 };
