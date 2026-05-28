@@ -260,10 +260,6 @@ export default function StatsPage() {
     };
   }, [chartData]);
 
-  
-
-  
-
   // ── Helpers ────────────────────────────────────────────────────────────────
 
   const getImageUrl = (path) => {
@@ -359,8 +355,6 @@ export default function StatsPage() {
                 Apply
               </button>
             </div>
-
-            
           )}
         </div>
 
@@ -369,7 +363,7 @@ export default function StatsPage() {
         ) : (
           <>
             {/* Stat Cards */}
-            <div className="w-full grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="w-full grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
               <div className="py-6 px-5">
                 <p className="text-[13px] text-gray-500 mb-1 tracking-wide uppercase">
                   Published

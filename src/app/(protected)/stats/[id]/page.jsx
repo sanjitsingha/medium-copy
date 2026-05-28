@@ -24,8 +24,13 @@ export default function AnalyticsPage() {
 
   const downloadCSV = () => {
     if (!chartData || chartData.length === 0) return;
-    const rows = [["date", "views"], ...chartData.map((r) => [r.date, r.views])];
-    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const rows = [
+      ["date", "views"],
+      ...chartData.map((r) => [r.date, r.views]),
+    ];
+    const csv = rows
+      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -163,15 +168,18 @@ export default function AnalyticsPage() {
         {
           label: "Views",
           data: chartData.map((d) => d.views || 0),
-          backgroundColor: labels.map((_, i) => [
-            "#06B6D4",
-            "#4F46E5",
-            "#F59E0B",
-            "#EF4444",
-            "#10B981",
-            "#8B5CF6",
-            "#F97316",
-          ][i % 7]),
+          backgroundColor: labels.map(
+            (_, i) =>
+              [
+                "#06B6D4",
+                "#4F46E5",
+                "#F59E0B",
+                "#EF4444",
+                "#10B981",
+                "#8B5CF6",
+                "#F97316",
+              ][i % 7],
+          ),
           borderColor: labels.map((_, i) => "rgba(0,0,0,0.06)"),
           borderWidth: 1,
           borderRadius: 8,
@@ -183,11 +191,18 @@ export default function AnalyticsPage() {
     const options = {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { mode: "index", intersect: false } },
+      plugins: {
+        legend: { display: false },
+        tooltip: { mode: "index", intersect: false },
+      },
       interaction: { mode: "index", intersect: false },
       scales: {
         x: { ticks: { color: "#6B7280" }, grid: { display: false } },
-        y: { ticks: { color: "#6B7280" }, beginAtZero: true, grid: { color: "#F3F4F6" } },
+        y: {
+          ticks: { color: "#6B7280" },
+          beginAtZero: true,
+          grid: { color: "#F3F4F6" },
+        },
       },
       animation: { duration: 600, easing: "easeOutQuart" },
     };
@@ -268,7 +283,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* High Level Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-16">
           <div className="bg-white  ">
             <div className="flex items-center gap-3 mb-4">
               {/* <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
@@ -312,7 +327,6 @@ export default function AnalyticsPage() {
 
           <div className="w-full h-[350px]">
             <div className="flex items-center justify-between mb-4">
-            
               <div className="flex items-center gap-2">
                 <button
                   onClick={downloadCSV}
@@ -402,7 +416,7 @@ export default function AnalyticsPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-6 mt-16 md:grid-cols-2">
-          <div className="w-full bg-white rounded-3xl p-6 border border-gray-100">
+          <div className="w-full bg-white ">
             <h2 className="text-xl font-semibold text-black mb-6">
               UTM Sources
             </h2>
@@ -443,7 +457,7 @@ export default function AnalyticsPage() {
             )}
           </div>
 
-          <div className="w-full bg-white rounded-3xl p-6 border border-gray-100">
+          <div className="w-full bg-white">
             <h2 className="text-xl font-semibold text-black mb-6">
               Device Breakdown
             </h2>
@@ -485,7 +499,7 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="w-full bg-white rounded-3xl p-6 border border-gray-100 mt-6">
+        <div className="w-full bg-white  mt-6">
           <h2 className="text-xl font-semibold text-black mb-6">
             Top Locations
           </h2>

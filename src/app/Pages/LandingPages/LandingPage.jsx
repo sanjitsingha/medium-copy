@@ -8,7 +8,7 @@ const LandingPage = () => {
 
   console.log(user);
   return (
-    <div className="w-full h-[calc(100vh-64px)] flex items-center">
+    <div className="w-full h-[calc(100vh-200px)] flex items-center">
       <div className="max-w-[1100px] w-full px-4 md:px-10 lg:px-0 flex flex-col h-full mx-auto">
         {/* MAIN CONTENT */}
         <div className="flex-1 flex flex-col justify-center pt-10 md:pt-20">
@@ -31,7 +31,7 @@ const LandingPage = () => {
             className="
               mt-8 lg:mt-10 block w-fit
               bg-black text-white
-              px-6 py-2 md:px-8 md:py-3
+              px-6 py-3 md:px-8 md:py-3
               rounded-full
               text-sm md:text-base
             "
@@ -39,18 +39,6 @@ const LandingPage = () => {
           >
             Start Reading
           </Link>
-        </div>
-
-        {/* FOOTER LINKS */}
-        <div className="w-full flex justify-end h-[60px] border-t border-gray-300">
-          <div className="flex items-center h-full gap-3 md:gap-4 flex-wrap md:flex-nowrap py-2">
-            <Link target="_blank" href="/privacy-policy" className="text-black/30 hover:text-black transition-all duration-300  text-[12px] font-medium">
-              Privacy Policy
-            </Link>
-            <Link target="_blank" href="/terms-and-conditions" className="text-black/30 hover:text-black transition-all duration-300  text-[12px] font-medium">
-              Terms and conditions
-            </Link>
-          </div>
         </div>
       </div>
     </div>

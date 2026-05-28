@@ -41,14 +41,12 @@ const professions = [
 
 // ---------------- HELPERS ----------------
 const getRandomAvatar = () => {
-  const file = AVATARS[Math.floor(Math.random() * AVATARS.length)]
+  const file = AVATARS[Math.floor(Math.random() * AVATARS.length)];
 
-  const { data } = supabase.storage
-    .from("user_avatars")
-    .getPublicUrl(file)
+  const { data } = supabase.storage.from("user_avatars").getPublicUrl(file);
 
-  return data.publicUrl
-}
+  return data.publicUrl;
+};
 
 const generateUsername = (name) => {
   const cleanName = name.toLowerCase().replace(/\s+/g, "");
@@ -85,7 +83,7 @@ export default function EmailSignup() {
 
     if (!passwordRegex.test(pass)) {
       return setErrorMsg(
-        "Password must be at least 6 characters and include a letter, number, and special character."
+        "Password must be at least 6 characters and include a letter, number, and special character.",
       );
     }
 
@@ -97,44 +95,42 @@ export default function EmailSignup() {
   };
 
   // ---------------- STEP 2 ----------------
- const handleSignupStep2 = async () => {
-  setLoading(true)
-  setErrorMsg("")
+  const handleSignupStep2 = async () => {
+    setLoading(true);
+    setErrorMsg("");
 
-  if (!name || !dob || !profession) {
-    setLoading(false)
-    return setErrorMsg("Please fill all fields.")
-  }
-
-  try {
-    const username = generateUsername(name)
-    const avatar = getRandomAvatar()
-
-    // ✅ Create auth user
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password: pass,
-        options: {
-    data: {
-      display_name: name,
-      avatar_url: avatar,
-    },
-  },
-    })
-
-    if (error) throw error
-
-    const user = data.user
-
-    if (!user) {
-      setLoading(false)
-      return setErrorMsg("Please verify your email first.")
+    if (!name || !dob || !profession) {
+      setLoading(false);
+      return setErrorMsg("Please fill all fields.");
     }
 
-    // ✅ Insert into users table
-    const { error: dbError } = await supabase
-      .from("users")
-      .insert([
+    try {
+      const username = generateUsername(name);
+      const avatar = getRandomAvatar();
+
+      // ✅ Create auth user
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password: pass,
+        options: {
+          data: {
+            display_name: name,
+            avatar_url: avatar,
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      const user = data.user;
+
+      if (!user) {
+        setLoading(false);
+        return setErrorMsg("Please verify your email first.");
+      }
+
+      // ✅ Insert into users table
+      const { error: dbError } = await supabase.from("users").insert([
         {
           id: user.id,
           email,
@@ -144,21 +140,20 @@ export default function EmailSignup() {
           profession,
           avatar,
         },
-      ])
+      ]);
 
-    if (dbError) throw dbError
+      if (dbError) throw dbError;
 
-    router.push("/")
-  } catch (error) {
-    setErrorMsg(error.message)
-  }
+      router.push("/");
+    } catch (error) {
+      setErrorMsg(error.message);
+    }
 
-  setLoading(false)
-}
+    setLoading(false);
+  };
 
   return (
-    <div className="w-full min-h-[calc(100vh-64px)] flex flex-col justify-center items-center px-6">
-      
+    <div className="w-full min-h-[calc(100vh-200px)] flex flex-col justify-center items-center px-6">
       {/* ---------------- STEP 1 ---------------- */}
       {step === 1 && (
         <>
@@ -259,9 +254,7 @@ export default function EmailSignup() {
             ))}
           </div>
 
-          {errorMsg && (
-            <p className="text-red-500 text-xs mt-3">{errorMsg}</p>
-          )}
+          {errorMsg && <p className="text-red-500 text-xs mt-3">{errorMsg}</p>}
 
           <button
             onClick={handleSignupStep2}

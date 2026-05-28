@@ -44,7 +44,7 @@ function StoriesCardHorizontal({
   const avatarPhoto = article.author_avatar;
 
   return (
-    <div className="border-b border-gray-200  mb-8">
+    <div className="border-b border-gray-200 pb-10 mb-10">
       {/* ================= AUTHOR ================= */}
       <div className="flex items-center gap-3 text-xs text-gray-500">
         <Link
@@ -83,7 +83,7 @@ function StoriesCardHorizontal({
       <Link href={`/read/${article.slug}`}>
         <div className="flex gap-2 mt-2 cursor-pointer">
           <div className="flex-1">
-            <h2 className="text-[22px] md:text-[24px] font-creato font-semibold text-black line-clamp-2 md:line-clamp-none">
+            <h2 className="text-[22px] md:text-[24px] font-creato font-bold tracking-tight text-black line-clamp-2 md:line-clamp-none">
               {article.title}
             </h2>
 
@@ -105,7 +105,7 @@ function StoriesCardHorizontal({
       </Link>
 
       {/* ================= ACTIONS ================= */}
-      <div className="flex gap-8 my-4 text-gray-500">
+      <div className="flex gap-8 my-4 text-gray-500 hidden">
         {/* LIKE */}
         <button
           onClick={handleLike}

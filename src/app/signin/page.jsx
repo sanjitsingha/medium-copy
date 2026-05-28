@@ -6,9 +6,11 @@ import Image from "next/image";
 
 export default function SignInPage() {
   return (
-    <div className="w-full h-[calc(100vh-64px)] flex flex-col justify-center items-center px-6">
-<Image width={60} height={60} alt="logo" src={'/logo.png'}/>
-      <h1 className="text-3xl my-10 text-black font-creato tracking-tight">welcome back.</h1>
+    <div className="w-full h-[calc(100vh-200px)] flex flex-col justify-center items-center px-6">
+      <Image width={60} height={60} alt="logo" src={"/logo.png"} />
+      <h1 className="text-3xl my-10 text-black font-creato tracking-tight">
+        welcome back.
+      </h1>
 
       <GoogleSignInButton />
 
@@ -29,8 +31,8 @@ export default function SignInPage() {
       </p>
 
       <p className="text-[12px] text-center  text-black/60 mt-6">
-        By clicking &quot;Sign in&quot;, you accept Vichento&apos;s Terms of Service and Privacy
-        Policy.
+        By clicking &quot;Sign in&quot;, you accept Vichento&apos;s Terms of
+        Service and Privacy Policy.
       </p>
     </div>
   );

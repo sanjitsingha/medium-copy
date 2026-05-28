@@ -40,7 +40,7 @@ export default function EmailLogin() {
   };
 
   return (
-    <div className="w-full h-[calc(100vh-64px)] flex flex-col justify-center items-center px-6">
+    <div className="w-full h-[calc(100vh-200px)] flex flex-col justify-center items-center px-6">
       <Image width={60} height={60} alt="logo" src={"/logo.png"} />
 
       <h1 className="text-2xl text-black font-creato tracking-tight my-10">
